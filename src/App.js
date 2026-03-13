@@ -1169,7 +1169,6 @@ export default function MontanaAI() {
             pasta:"#pasta #pastaturku #italianfood #carbonara #pastatime",
           };
           const today = new Date();
-          const dayIdx = today.getDay()===0?6:today.getDay()-1;
           const isWeekend = today.getDay()===0||today.getDay()===6;
           const TIMES = isWeekend?["12:00","17:00","20:00"]:["14:30","17:30","20:00"];
           const todayDish = DISHES[today.getDate()%DISHES.length];
