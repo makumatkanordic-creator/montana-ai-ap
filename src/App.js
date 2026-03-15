@@ -838,7 +838,7 @@ export default function MontanaAI() {
 
           const now = new Date();
           const filtered = (() => {
-            const f = woltFilter;
+            const f = historyFilter;
             if(f==="week"){const w=new Date(now);w.setDate(now.getDate()-7);return woltHistory.filter(d=>new Date(d.date)>=w);}
             if(f==="month"){return woltHistory.filter(d=>new Date(d.date).getMonth()===now.getMonth()&&new Date(d.date).getFullYear()===now.getFullYear());}
             if(f==="lastmonth"){const lm=now.getMonth()===0?11:now.getMonth()-1;const ly=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();return woltHistory.filter(d=>new Date(d.date).getMonth()===lm&&new Date(d.date).getFullYear()===ly);}
@@ -846,7 +846,17 @@ export default function MontanaAI() {
             return woltHistory;
           })();
 
-          const tot = calcTotals(filtered);
+          const tot = (() => {
+            const r = {sali:0,sali_kpl:0,mw:0,mw_kpl:0,rot:0,rot_kpl:0,dub:0,dub_kpl:0,all:0,all_kpl:0};
+            filtered.forEach(d=>{
+              r.sali+=parseFloat(d.sali)||0; r.sali_kpl+=parseInt(d.sali_kpl)||0;
+              r.mw+=parseFloat(d.montana_wolt)||0; r.mw_kpl+=parseInt(d.mw_kpl)||0;
+              r.rot+=parseFloat(d.rotana)||0; r.rot_kpl+=parseInt(d.rot_kpl)||0;
+              r.dub+=parseFloat(d.dubai)||0; r.dub_kpl+=parseInt(d.dub_kpl)||0;
+            });
+            r.all=r.sali+r.mw+r.rot+r.dub; r.all_kpl=r.sali_kpl+r.mw_kpl+r.rot_kpl+r.dub_kpl;
+            return r;
+          })();
 
           // Profit calculations
           const calcProfit = (revenue, kpl, costPerUnit, isWolt) => {
@@ -915,7 +925,7 @@ export default function MontanaAI() {
               <h1 style={{fontSize:22,fontWeight:900,margin:0}}>📊 Analytiikka Pro</h1>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                 {[["all","Kaikki"],["week","Viikko"],["month","Kk"],["lastmonth","Ed.kk"],["year","Vuosi"]].map(([v,l])=>(
-                  <button key={v} onClick={()=>setWoltFilter(v)} style={{padding:"5px 10px",borderRadius:8,border:"none",background:woltFilter===v?"#e8a020":"rgba(255,255,255,0.06)",color:woltFilter===v?"#000":"#666",cursor:"pointer",fontSize:11,fontWeight:700}}>{l}</button>
+                  <button key={v} onClick={()=>setHistoryFilter(v)} style={{padding:"5px 10px",borderRadius:8,border:"none",background:historyFilter===v?"#e8a020":"rgba(255,255,255,0.06)",color:historyFilter===v?"#000":"#666",cursor:"pointer",fontSize:11,fontWeight:700}}>{l}</button>
                 ))}
               </div>
             </div>
