@@ -826,286 +826,284 @@ export default function MontanaAI() {
         )}
 
         {/* ANALYTICS */}
-        {screen==="analytics"&&(
+        {screen==="analytics"&&(()=>{
+          // COSTS per unit (editable estimates)
+          const COSTS = {
+            sali: 6.5,        // avg cost per dine-in order
+            montana_wolt: 7.2, // avg cost per wolt order (incl wolt fee ~30%)
+            rotana: 6.8,
+            dubai: 6.5,
+          };
+          const WOLT_FEE = 0.30; // 30% Wolt commission
+
+          const now = new Date();
+          const filtered = (() => {
+            const f = woltFilter;
+            if(f==="week"){const w=new Date(now);w.setDate(now.getDate()-7);return woltHistory.filter(d=>new Date(d.date)>=w);}
+            if(f==="month"){return woltHistory.filter(d=>new Date(d.date).getMonth()===now.getMonth()&&new Date(d.date).getFullYear()===now.getFullYear());}
+            if(f==="lastmonth"){const lm=now.getMonth()===0?11:now.getMonth()-1;const ly=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();return woltHistory.filter(d=>new Date(d.date).getMonth()===lm&&new Date(d.date).getFullYear()===ly);}
+            if(f==="year"){return woltHistory.filter(d=>new Date(d.date).getFullYear()===now.getFullYear());}
+            return woltHistory;
+          })();
+
+          const tot = calcTotals(filtered);
+
+          // Profit calculations
+          const calcProfit = (revenue, kpl, costPerUnit, isWolt) => {
+            const totalCost = kpl * costPerUnit;
+            const woltFee = isWolt ? revenue * WOLT_FEE : 0;
+            return revenue - totalCost - woltFee;
+          };
+
+          const profits = {
+            sali: calcProfit(tot.sali, tot.sali_kpl, COSTS.sali, false),
+            mw: calcProfit(tot.mw, tot.mw_kpl, COSTS.montana_wolt, true),
+            rot: calcProfit(tot.rot, tot.rot_kpl, COSTS.rotana, true),
+            dub: calcProfit(tot.dub, tot.dub_kpl, COSTS.dubai, true),
+          };
+          const totalProfit = profits.sali + profits.mw + profits.rot + profits.dub;
+          const profitMargin = tot.all > 0 ? (totalProfit / tot.all * 100) : 0;
+
+          // Avg order values
+          const avgOrder = {
+            sali: tot.sali_kpl > 0 ? (tot.sali / tot.sali_kpl) : 0,
+            mw: tot.mw_kpl > 0 ? (tot.mw / tot.mw_kpl) : 0,
+            rot: tot.rot_kpl > 0 ? (tot.rot / tot.rot_kpl) : 0,
+            dub: tot.dub_kpl > 0 ? (tot.dub / tot.dub_kpl) : 0,
+          };
+
+          // Peak day analysis
+          const dayStats = {};
+          filtered.forEach(d => {
+            const day = new Date(d.date).toLocaleDateString("fi-FI",{weekday:"short"});
+            if(!dayStats[day]) dayStats[day] = {rev:0, kpl:0, days:0};
+            dayStats[day].rev += (parseFloat(d.sali)||0)+(parseFloat(d.montana_wolt)||0)+(parseFloat(d.rotana)||0)+(parseFloat(d.dubai)||0);
+            dayStats[day].kpl += (parseInt(d.sali_kpl)||0)+(parseInt(d.mw_kpl)||0)+(parseInt(d.rot_kpl)||0)+(parseInt(d.dub_kpl)||0);
+            dayStats[day].days++;
+          });
+          const peakDay = Object.entries(dayStats).sort((a,b)=>b[1].rev-a[1].rev)[0];
+          const weakDay = Object.entries(dayStats).sort((a,b)=>a[1].rev-b[1].rev)[0];
+
+          // Best restaurant
+          const restRevs = [
+            {name:"Montana Sali", rev:tot.sali, kpl:tot.sali_kpl, profit:profits.sali, color:"#e8a020"},
+            {name:"Montana Wolt", rev:tot.mw, kpl:tot.mw_kpl, profit:profits.mw, color:"#f97316"},
+            {name:"Rotana", rev:tot.rot, kpl:tot.rot_kpl, profit:profits.rot, color:"#7c6ff7"},
+            {name:"Dubai", rev:tot.dub, kpl:tot.dub_kpl, profit:profits.dub, color:"#22c98a"},
+          ].sort((a,b)=>b.profit-a.profit);
+
+          // Smart alerts
+          const alerts = [];
+          if(profitMargin < 20) alerts.push({type:"warn", msg:`Kateprosentti ${profitMargin.toFixed(1)}% — tavoite on yli 25%`, action:"Tarkista Wolt-hinnat"});
+          if(avgOrder.mw > 0 && avgOrder.mw < 18) alerts.push({type:"warn", msg:`Montana Wolt tilauksen keskiarvo ${avgOrder.mw.toFixed(2)}€ — liian alhainen`, action:"Lisää lisämyynti tai combo-tarjous"});
+          if(tot.mw_kpl > 0 && tot.sali_kpl / (tot.mw_kpl||1) < 0.1) alerts.push({type:"info", msg:"Sali-myynti on alle 10% Wolt-myynnistä", action:"Harkitse lounastarjousta saliinkin"});
+          if(profits.mw < profits.sali && tot.mw_kpl > tot.sali_kpl) alerts.push({type:"warn", msg:"Wolt tuo enemmän tilauksia mutta vähemmän voittoa kuin sali", action:"Harkitse Wolt-hintojen korotusta 5-10%"});
+          if(tot.all_kpl > 0) alerts.push({type:"ok", msg:`Tilauksia yhteensä ${tot.all_kpl} kpl — hyvä tulos!`, action:""});
+
+          // Recommendations
+          const recs = [
+            profits.mw / (tot.mw||1) < 0.25 ? "📈 Nosta Wolt-hintoja 5% — Wolt ottaa 30% komissiosta" : null,
+            avgOrder.mw < 20 ? "🍕 Lisää combo-tarjous Woltiin: Pizza + juoma +2€" : null,
+            weakDay ? `📅 ${weakDay[0]} on heikoin päivä — harkitse tarjousta` : null,
+            peakDay ? `⭐ ${peakDay[0]} on paras päivä — lisää markkinointia` : null,
+            tot.sali_kpl < 5 ? "🪑 Sali-myynti vähäistä — harkitse lounasmenu tai tarjous" : null,
+          ].filter(Boolean);
+
+          return (
           <div>
-            <h1 style={{fontSize:22,fontWeight:900,margin:"0 0 16px"}}>📈 {t.analytics}</h1>
-
-            {/* PDF REPORT PANEL */}
-            <div style={{background:"rgba(232,160,32,0.08)",border:"1px solid rgba(232,160,32,0.25)",borderRadius:14,padding:18,marginBottom:16}}>
-              <div style={{fontWeight:800,fontSize:14,color:"#e8a020",marginBottom:14}}>🖨️ Tulosta PDF-raportti</div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10,marginBottom:14}}>
-                <div>
-                  <div style={{fontSize:11,color:"#555",marginBottom:5,fontWeight:600}}>📅 Mistä</div>
-                  <input type="date" value={pdfFrom} onChange={e=>setPdfFrom(e.target.value)}
-                    style={{width:"100%",padding:"8px",borderRadius:8,border:"1px solid rgba(232,160,32,0.3)",background:"rgba(232,160,32,0.08)",color:"#fff",fontSize:12,outline:"none",boxSizing:"border-box"}}/>
-                </div>
-                <div>
-                  <div style={{fontSize:11,color:"#555",marginBottom:5,fontWeight:600}}>📅 Mihin</div>
-                  <input type="date" value={pdfTo} onChange={e=>setPdfTo(e.target.value)}
-                    style={{width:"100%",padding:"8px",borderRadius:8,border:"1px solid rgba(232,160,32,0.3)",background:"rgba(232,160,32,0.08)",color:"#fff",fontSize:12,outline:"none",boxSizing:"border-box"}}/>
-                </div>
-                <div>
-                  <div style={{fontSize:11,color:"#555",marginBottom:5,fontWeight:600}}>🍽️ Ravintola</div>
-                  <select value={pdfRest} onChange={e=>setPdfRest(e.target.value)}
-                    style={{width:"100%",padding:"8px",borderRadius:8,border:"1px solid rgba(232,160,32,0.3)",background:"#1a1a1a",color:"#fff",fontSize:12,outline:"none",boxSizing:"border-box"}}>
-                    <option value="all">Kaikki ravintolat</option>
-                    <option value="sali">🍽️ Sali</option>
-                    <option value="montana_wolt">🛵 Montana Wolt</option>
-                    <option value="rotana">🍕 Rotana</option>
-                    <option value="dubai">🥙 Dubai</option>
-                  </select>
-                </div>
-                <div style={{display:"flex",alignItems:"flex-end"}}>
-                  <button onClick={()=>{
-                    const from=pdfFrom?new Date(pdfFrom):null;
-                    const to=pdfTo?new Date(pdfTo+"T23:59:59"):null;
-                    const filtered=woltHistory.filter(e=>{
-                      const d=new Date(e.date);
-                      if(from&&d<from) return false;
-                      if(to&&d>to) return false;
-                      return true;
-                    }).sort((a,b)=>new Date(a.date)-new Date(b.date));
-                    const restLabels={sali:"🍽️ Sali",montana_wolt:"🛵 Montana Wolt",rotana:"🍕 Rotana",dubai:"🥙 Dubai"};
-                    const restKeys=pdfRest==="all"?["sali","montana_wolt","rotana","dubai"]:[pdfRest];
-                    const restColors={sali:"#e8a020",montana_wolt:"#f97316",rotana:"#7c6ff7",dubai:"#22c98a"};
-                    const headers=restKeys.map(k=>`<th style="color:${restColors[k]}">${restLabels[k]}</th>`).join("")+"<th>Yhteensä</th>";
-                    const rows=filtered.map(e=>{
-                      const cells=restKeys.map(k=>`<td>€${parseFloat(e[k]||0).toFixed(2)}${e[k+"_kpl"]?" ("+e[k+"_kpl"]+"kpl)":""}</td>`).join("");
-                      const total=restKeys.reduce((s,k)=>s+(parseFloat(e[k])||0),0);
-                      return `<tr><td>${e.date}</td>${cells}<td><b>€${total.toFixed(2)}</b></td></tr>`;
-                    }).join("");
-                    const colTotals=restKeys.map(k=>`<td><b>€${filtered.reduce((s,e)=>s+(parseFloat(e[k])||0),0).toFixed(2)}</b></td>`).join("");
-                    const grandTotal=filtered.reduce((s,e)=>s+restKeys.reduce((ss,k)=>ss+(parseFloat(e[k])||0),0),0);
-                    const title=pdfRest==="all"?"Kaikki ravintolat":restLabels[pdfRest];
-                    const period=`${pdfFrom||"alusta"} → ${pdfTo||"tähän päivään"}`;
-                    const w=window.open("","_blank","width=1000,height=750");
-                    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Montana Raportti</title><style>
-                      *{box-sizing:border-box}body{font-family:Arial,sans-serif;padding:30px;color:#222;max-width:900px;margin:0 auto}
-                      .header{background:#1a1a1a;color:#e8a020;padding:20px;border-radius:8px;margin-bottom:20px}
-                      .header h2{margin:0 0 5px;font-size:22px}.header p{margin:3px 0;font-size:13px;color:#999}
-                      .badge{display:inline-block;background:#e8a020;color:#000;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;margin:8px 4px 0 0}
-                      table{width:100%;border-collapse:collapse;margin-top:15px}
-                      th{background:#222;color:#fff;padding:10px 8px;text-align:left;font-size:13px}
-                      td{padding:8px;border-bottom:1px solid #eee;font-size:13px}
-                      tr:nth-child(even){background:#f9f9f9}
-                      .total-row{background:#fff8e1!important;font-weight:bold}
-                      .grand{font-size:18px;font-weight:900;color:#e8a020;text-align:right;margin-top:15px;padding:10px;background:#1a1a1a;border-radius:8px;color:#e8a020}
-                      @media print{button{display:none}}
-                    </style></head><body>
-                    <div class="header">
-                      <h2>🍽️ TOWN RAVINTOLAT OY</h2>
-                      <p>Tommilankatu 1, 20300 Turku | Y-tunnus: 3568909-8 | 044 246 6447</p>
-                      <p>makumatka.nordic@gmail.com</p>
-                      <span class="badge">📊 ${title}</span>
-                      <span class="badge">📅 ${period}</span>
-                      <span class="badge">📋 ${filtered.length} päivää</span>
-                    </div>
-                    <table><thead><tr><th>Päivä</th>${headers}</tr></thead>
-                    <tbody>${rows}
-                    <tr class="total-row"><td><b>YHTEENSÄ</b></td>${colTotals}<td><b>€${grandTotal.toFixed(2)}</b></td></tr>
-                    </tbody></table>
-                    <div class="grand">🏆 Kokonaismyynti: €${grandTotal.toFixed(2)}</div>
-                    <p style="color:#999;font-size:11px;margin-top:20px">Tulostettu: ${new Date().toLocaleDateString("fi-FI")} ${new Date().toLocaleTimeString("fi-FI")}</p>
-                    <script>setTimeout(()=>window.print(),400)</script>
-                    </body></html>`);
-                    w.document.close();
-                  }} style={{width:"100%",padding:"10px",borderRadius:9,border:"none",background:"#e8a020",color:"#000",fontWeight:800,cursor:"pointer",fontSize:13}}>🖨️ Tulosta PDF</button>
-                </div>
-              </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+              <h1 style={{fontSize:22,fontWeight:900,margin:0}}>📊 Analytiikka Pro</h1>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {[["all","Kaikki"],["week","Viikko"],["month","Kk"],["lastmonth","Ed.kk"],["year","Vuosi"]].map(([v,l])=>(
+                  <button key={v} onClick={()=>setWoltFilter(v)} style={{padding:"5px 10px",borderRadius:8,border:"none",background:woltFilter===v?"#e8a020":"rgba(255,255,255,0.06)",color:woltFilter===v?"#000":"#666",cursor:"pointer",fontSize:11,fontWeight:700}}>{l}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* SMART ALERTS */}
+            {alerts.length>0&&<div style={{marginBottom:14}}>
+              {alerts.map((a,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"10px 14px",borderRadius:10,marginBottom:6,background:a.type==="warn"?"rgba(239,68,68,0.08)":a.type==="ok"?"rgba(16,185,129,0.08)":"rgba(59,130,246,0.08)",border:`1px solid ${a.type==="warn"?"rgba(239,68,68,0.2)":a.type==="ok"?"rgba(16,185,129,0.2)":"rgba(59,130,246,0.2)"}`}}>
+                  <span style={{fontSize:16}}>{a.type==="warn"?"⚠️":a.type==="ok"?"✅":"💡"}</span>
+                  <div>
+                    <div style={{fontSize:12,color:"#ccc"}}>{a.msg}</div>
+                    {a.action&&<div style={{fontSize:11,color:"#666",marginTop:2}}>→ {a.action}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>}
+
+            {/* KEY METRICS */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+              {[
+                {label:"💰 Liikevaihto",value:`${tot.all.toFixed(2)}€`,sub:`${tot.all_kpl} tilauksia`,color:"#e8a020"},
+                {label:"📈 Arvioitu voitto",value:`${totalProfit.toFixed(2)}€`,sub:`Kate ${profitMargin.toFixed(1)}%`,color:profitMargin>25?"#10b981":profitMargin>15?"#f59e0b":"#ef4444"},
+                {label:"🛵 Wolt yhteensä",value:`${(tot.mw+tot.rot+tot.dub).toFixed(2)}€`,sub:`${(tot.mw_kpl+tot.rot_kpl+tot.dub_kpl)} tilauksia`,color:"#f97316"},
+                {label:"🪑 Sali",value:`${tot.sali.toFixed(2)}€`,sub:`${tot.sali_kpl} tilauksia`,color:"#e8a020"},
+              ].map((m,i)=>(
+                <div key={i} style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${m.color}25`,borderRadius:14,padding:14}}>
+                  <div style={{fontSize:11,color:"#555",marginBottom:4}}>{m.label}</div>
+                  <div style={{fontSize:20,fontWeight:900,color:m.color}}>{m.value}</div>
+                  <div style={{fontSize:11,color:"#444",marginTop:2}}>{m.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* RESTAURANT PROFIT RANKING */}
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18,marginBottom:14}}>
+              <div style={{fontWeight:800,fontSize:14,marginBottom:12}}>🏆 Ravintolat kannattavuusjärjestyksessä</div>
+              {restRevs.map((r,i)=>(
+                <div key={i} style={{display:"grid",gridTemplateColumns:"20px 1fr 80px 80px 70px",gap:8,alignItems:"center",padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                  <div style={{fontSize:14}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":"4️⃣"}</div>
+                  <div style={{fontSize:13,fontWeight:700,color:r.color}}>{r.name}</div>
+                  <div style={{fontSize:11,color:"#666"}}>{r.rev.toFixed(0)}€</div>
+                  <div style={{fontSize:11,color:r.profit>0?"#10b981":"#ef4444",fontWeight:700}}>{r.profit.toFixed(0)}€ voitto</div>
+                  <div style={{fontSize:10,color:"#444"}}>{r.kpl} kpl</div>
+                </div>
+              ))}
+            </div>
+
+            {/* AVG ORDER VALUE */}
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18,marginBottom:14}}>
+              <div style={{fontWeight:800,fontSize:14,marginBottom:12}}>💎 Tilauksen keskiarvo</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                 {[
-                  ["today","📅 اليوم"],
-                  ["yesterday","📅 البارحة"],
-                  ["week","📆 هذا الأسبوع"],
-                  ["prevweek","📆 الأسبوع الماضي"],
-                  ["month","🗓️ هذا الشهر"],
-                  ["prevmonth","🗓️ الشهر الماضي"],
-                  ["year","📊 هذه السنة"],
-                  ["prevyear","📊 السنة الماضية"],
-                  ["all","🌐 الكل"],
-                ].map(([f,label])=>(
-                  <button key={f} onClick={()=>{
-                    const now=new Date();
-                    const fmt=d=>d.toISOString().split("T")[0];
-                    if(f==="today"){setPdfFrom(fmt(now));setPdfTo(fmt(now));}
-                    else if(f==="yesterday"){const y=new Date(now);y.setDate(now.getDate()-1);setPdfFrom(fmt(y));setPdfTo(fmt(y));}
-                    else if(f==="week"){const d=new Date(now);d.setDate(now.getDate()-now.getDay()+1);setPdfFrom(fmt(d));setPdfTo(fmt(now));}
-                    else if(f==="prevweek"){const d=new Date(now);d.setDate(now.getDate()-now.getDay()-6);const e=new Date(now);e.setDate(now.getDate()-now.getDay());setPdfFrom(fmt(d));setPdfTo(fmt(e));}
-                    else if(f==="month"){setPdfFrom(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-01`);setPdfTo(fmt(now));}
-                    else if(f==="prevmonth"){const pm=new Date(now.getFullYear(),now.getMonth()-1,1);const pe=new Date(now.getFullYear(),now.getMonth(),0);setPdfFrom(fmt(pm));setPdfTo(fmt(pe));}
-                    else if(f==="year"){setPdfFrom(`${now.getFullYear()}-01-01`);setPdfTo(fmt(now));}
-                    else if(f==="prevyear"){setPdfFrom(`${now.getFullYear()-1}-01-01`);setPdfTo(`${now.getFullYear()-1}-12-31`);}
-                    else{setPdfFrom("");setPdfTo("");}
-                  }} style={{padding:"6px 13px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:"rgba(232,160,32,0.15)",color:"#e8a020"}}>{label}</button>
+                  {name:"🪑 Sali",avg:avgOrder.sali,color:"#e8a020"},
+                  {name:"🛵 Montana Wolt",avg:avgOrder.mw,color:"#f97316"},
+                  {name:"🛵 Rotana",avg:avgOrder.rot,color:"#7c6ff7"},
+                  {name:"🛵 Dubai",avg:avgOrder.dub,color:"#22c98a"},
+                ].map((r,i)=>(
+                  <div key={i} style={{padding:"10px 14px",borderRadius:12,background:`${r.color}10`,border:`1px solid ${r.color}25`}}>
+                    <div style={{fontSize:11,color:"#555"}}>{r.name}</div>
+                    <div style={{fontSize:20,fontWeight:900,color:r.color}}>{r.avg.toFixed(2)}€</div>
+                    <div style={{fontSize:10,color:r.avg>=20?"#10b981":r.avg>=15?"#f59e0b":"#ef4444"}}>{r.avg>=20?"✅ Hyvä":r.avg>=15?"⚠️ OK":"❌ Alhainen"}</div>
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* WOLT ENTRY */}
-            <div style={{background:"rgba(0,157,224,0.07)",border:"1px solid rgba(0,157,224,0.2)",borderRadius:14,padding:20,marginBottom:16}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                <div style={{fontWeight:800,fontSize:15,color:"#009de0"}}>🛵 {editEntry?"✏️ Muokkaa päivää":"Päivittäinen syöttö"}</div>
-                <input type="date" value={woltSales.date} onChange={e=>setWoltSales(p=>({...p,date:e.target.value}))}
-                  style={{padding:"6px 10px",borderRadius:8,border:"1px solid rgba(0,157,224,0.3)",background:"rgba(0,157,224,0.1)",color:"#fff",fontSize:12,outline:"none"}}/>
+            {/* PEAK DAYS */}
+            {Object.keys(dayStats).length>0&&<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18,marginBottom:14}}>
+              <div style={{fontWeight:800,fontSize:14,marginBottom:12}}>📅 Päiväkohtainen analyysi</div>
+              <div style={{display:"grid",gap:6}}>
+                {Object.entries(dayStats).sort((a,b)=>b[1].rev-a[1].rev).map(([day,stats],i)=>{
+                  const maxRev = Math.max(...Object.values(dayStats).map(s=>s.rev));
+                  const pct = maxRev > 0 ? (stats.rev/maxRev*100) : 0;
+                  return <div key={day} style={{display:"grid",gridTemplateColumns:"30px 1fr 80px 60px",gap:8,alignItems:"center"}}>
+                    <div style={{fontSize:12,color:"#555",fontWeight:700}}>{day}</div>
+                    <div style={{height:8,borderRadius:4,background:"rgba(255,255,255,0.05)",overflow:"hidden"}}>
+                      <div style={{height:"100%",width:`${pct}%`,background:i===0?"#e8a020":i===Object.keys(dayStats).length-1?"#ef4444":"#555",borderRadius:4,transition:"width 0.3s"}}/>
+                    </div>
+                    <div style={{fontSize:11,color:i===0?"#e8a020":"#555",fontWeight:i===0?700:400}}>{stats.rev.toFixed(0)}€</div>
+                    <div style={{fontSize:10,color:"#444"}}>{stats.kpl} kpl</div>
+                  </div>;
+                })}
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:14}}>
-                {[["sali","sali_kpl","🍽️ Sali","#e8a020"],["montana_wolt","mw_kpl","🛵 Montana Wolt","#f97316"],["rotana","rot_kpl","🍕 Rotana","#7c6ff7"],["dubai","dub_kpl","🥙 Dubai","#22c98a"]].map(([id,kplKey,label,color])=>(
-                  <div key={id} style={{background:`${color}08`,borderRadius:10,padding:10,border:`1px solid ${color}20`}}>
-                    <div style={{fontSize:11,color:color,marginBottom:8,fontWeight:700}}>{label}</div>
-                    <div style={{marginBottom:7}}>
-                      <div style={{fontSize:10,color:"#444",marginBottom:4}}>💰 Myynti</div>
-                      <div style={{position:"relative"}}>
-                        <span style={{position:"absolute",left:8,top:"50%",transform:"translateY(-50%)",color:color,fontWeight:700,fontSize:12}}>€</span>
-                        <input type="number" placeholder="0.00" value={woltSales[id]||""}
-                          onChange={e=>setWoltSales(p=>({...p,[id]:e.target.value}))}
-                          style={{width:"100%",padding:"8px 8px 8px 22px",borderRadius:7,border:`1px solid ${color}30`,background:"rgba(0,0,0,0.3)",color:"#fff",fontSize:13,fontWeight:700,outline:"none",boxSizing:"border-box"}}/>
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{fontSize:10,color:"#444",marginBottom:4}}>📦 Tilaukset (kpl)</div>
-                      <input type="number" placeholder="0" value={woltSales[kplKey]||""}
-                        onChange={e=>setWoltSales(p=>({...p,[kplKey]:e.target.value}))}
-                        style={{width:"100%",padding:"8px",borderRadius:7,border:`1px solid ${color}30`,background:"rgba(0,0,0,0.3)",color:"#fff",fontSize:13,fontWeight:700,outline:"none",boxSizing:"border-box"}}/>
-                    </div>
+            </div>}
+
+            {/* AI RECOMMENDATIONS */}
+            <div style={{background:"rgba(0,157,224,0.07)",border:"1px solid rgba(0,157,224,0.2)",borderRadius:16,padding:18,marginBottom:14}}>
+              <div style={{fontWeight:800,fontSize:14,color:"#009de0",marginBottom:12}}>🤖 AI-suositukset</div>
+              {recs.map((r,i)=>(
+                <div key={i} style={{padding:"8px 12px",borderRadius:8,marginBottom:6,background:"rgba(0,157,224,0.05)",fontSize:12,color:"#ccc"}}>{r}</div>
+              ))}
+              <button onClick={()=>{
+                setChatInput(`Analysoi ravintolani myyntitiedot ja anna 5 konkreettista suositusta liikevaihdon kasvattamiseksi:
+- Montana Sali: ${tot.sali.toFixed(2)}€ (${tot.sali_kpl} kpl, ka ${avgOrder.sali.toFixed(2)}€/tilaus)
+- Montana Wolt: ${tot.mw.toFixed(2)}€ (${tot.mw_kpl} kpl, ka ${avgOrder.mw.toFixed(2)}€/tilaus)
+- Rotana: ${tot.rot.toFixed(2)}€ (${tot.rot_kpl} kpl)
+- Dubai: ${tot.dub.toFixed(2)}€ (${tot.dub_kpl} kpl)
+- Arvioitu voitto: ${totalProfit.toFixed(2)}€ (kate ${profitMargin.toFixed(1)}%)
+Anna vastaus suomeksi, käytännölliset neuvot.`);
+                setScreen("assistant");
+              }} style={{width:"100%",marginTop:8,padding:"10px",borderRadius:10,border:"none",background:"#009de0",color:"#fff",fontWeight:800,cursor:"pointer",fontSize:13}}>
+                🤖 Kysy AI:lta syvällinen analyysi →
+              </button>
+            </div>
+
+            {/* COST SETTINGS */}
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18,marginBottom:14}}>
+              <div style={{fontWeight:800,fontSize:14,marginBottom:4}}>⚙️ Kustannusarviot (muokkaa)</div>
+              <div style={{fontSize:11,color:"#444",marginBottom:12}}>Päivitä arvot tarkempaa voittolaskelmaa varten</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {[
+                  {label:"🪑 Sali (€/tilaus)",key:"sali",val:COSTS.sali},
+                  {label:"🛵 Montana Wolt",key:"mw",val:COSTS.montana_wolt},
+                  {label:"🛵 Rotana",key:"rot",val:COSTS.rotana},
+                  {label:"🛵 Dubai",key:"dub",val:COSTS.dubai},
+                ].map(c=>(
+                  <div key={c.key} style={{padding:"8px 12px",borderRadius:10,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                    <div style={{fontSize:10,color:"#555",marginBottom:4}}>{c.label}</div>
+                    <div style={{fontSize:16,fontWeight:700,color:"#e8a020"}}>{c.val}€</div>
+                    <div style={{fontSize:9,color:"#333"}}>sis. raaka-aineet</div>
                   </div>
                 ))}
               </div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{fontSize:13,color:"#555"}}>Yhteensä: <span style={{color:"#009de0",fontWeight:800,fontSize:16}}>€{([woltSales.sali,woltSales.montana_wolt,woltSales.rotana,woltSales.dubai].reduce((s,v)=>s+(parseFloat(v)||0),0)).toFixed(2)}</span></div>
-                <div style={{display:"flex",gap:8}}>
-                  {editEntry&&<button onClick={()=>{setEditEntry(null);setWoltSales({date:new Date().toISOString().split("T")[0],sali:"",sali_kpl:"",montana_wolt:"",mw_kpl:"",rotana:"",rot_kpl:"",dubai:"",dub_kpl:""});}} style={{padding:"10px 16px",borderRadius:9,border:"1px solid rgba(255,255,255,0.1)",background:"transparent",color:"#888",fontWeight:700,cursor:"pointer",fontSize:13}}>✕ Peruuta</button>}
-                  <button onClick={()=>{
-                    const entry={...woltSales,savedAt:new Date().toISOString()};
-                    const newHistory=[entry,...woltHistory.filter(x=>x.date!==woltSales.date)].sort((a,b)=>new Date(b.date)-new Date(a.date));
-                    setWoltHistory(newHistory);
-                    try{localStorage.setItem("montana_wolt_history",JSON.stringify(newHistory));}catch(e){}
-                    setWoltSaved(true);setEditEntry(null);
-                    setTimeout(()=>setWoltSaved(false),2000);
-                    notify("✅ Tallennettu!");
-                    setWoltSales({date:new Date().toISOString().split("T")[0],sali:"",sali_kpl:"",montana_wolt:"",mw_kpl:"",rotana:"",rot_kpl:"",dubai:"",dub_kpl:""});
-                  }} style={{padding:"10px 22px",borderRadius:9,border:"none",background:"#009de0",color:"#fff",fontWeight:700,cursor:"pointer",fontSize:13}}>{woltSaved?"✅ Tallennettu!":"💾 Tallenna"}</button>
-                </div>
-              </div>
             </div>
 
-            {/* FILTER + HISTORY */}
-            {woltHistory.length>0&&(()=>{
-              const getFiltered=()=>{
-                const now=new Date();
-                return woltHistory.filter(e=>{
-                  const d=new Date(e.date);
-                  if(historyFilter==="week"){const w=new Date(now);w.setDate(now.getDate()-7);return d>=w;}
-                  if(historyFilter==="month") return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
-                  if(historyFilter==="year") return d.getFullYear()===now.getFullYear();
-                  if(historyFilter==="prevmonth"){const pm=new Date(now.getFullYear(),now.getMonth()-1,1);return d.getMonth()===pm.getMonth()&&d.getFullYear()===pm.getFullYear();}
-                  return true;
-                }).sort((a,b)=>new Date(b.date)-new Date(a.date));
-              };
-              const calcTotals=(list)=>({
-                sali:list.reduce((s,e)=>s+(parseFloat(e.sali)||0),0),
-                sali_kpl:list.reduce((s,e)=>s+(parseInt(e.sali_kpl)||0),0),
-                mw:list.reduce((s,e)=>s+(parseFloat(e.montana_wolt)||0),0),
-                mw_kpl:list.reduce((s,e)=>s+(parseInt(e.mw_kpl)||0),0),
-                rot:list.reduce((s,e)=>s+(parseFloat(e.rotana)||0),0),
-                rot_kpl:list.reduce((s,e)=>s+(parseInt(e.rot_kpl)||0),0),
-                dub:list.reduce((s,e)=>s+(parseFloat(e.dubai)||0),0),
-                dub_kpl:list.reduce((s,e)=>s+(parseInt(e.dub_kpl)||0),0),
-                all:list.reduce((s,e)=>s+[e.sali,e.montana_wolt,e.rotana,e.dubai].reduce((ss,v)=>ss+(parseFloat(v)||0),0),0),
-                all_kpl:list.reduce((s,e)=>s+[e.sali_kpl,e.mw_kpl,e.rot_kpl,e.dub_kpl].reduce((ss,v)=>ss+(parseInt(v)||0),0),0),
-              });
-              const filtered=getFiltered();
-              const totals=calcTotals(filtered);
-              return(
-                <div>
-                  {/* FILTER BUTTONS */}
-                  <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-                    {[["all","Kaikki"],["week","Viikko"],["month","Tämä kk"],["prevmonth","Edellinen kk"],["year","Tämä vuosi"]].map(([f,label])=>(
-                      <button key={f} onClick={()=>setHistoryFilter(f)} style={{padding:"6px 14px",borderRadius:9,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:historyFilter===f?"#009de0":"rgba(255,255,255,0.07)",color:historyFilter===f?"#fff":"#555"}}>{label}</button>
-                    ))}
+            {/* ENTRY FORM */}
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18,marginBottom:14}}>
+              <div style={{fontWeight:800,fontSize:14,marginBottom:12}}>➕ Lisää päivän myynti</div>
+              <div style={{marginBottom:8}}>
+                <div style={{fontSize:11,color:"#555",marginBottom:4}}>📅 Päivämäärä</div>
+                <input type="date" value={woltSales.date||new Date().toISOString().split("T")[0]} onChange={e=>setWoltSales({...woltSales,date:e.target.value})} style={{width:"100%",padding:"9px 12px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.05)",color:"#fff",fontSize:13,outline:"none",boxSizing:"border-box"}}/>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+                {[
+                  {label:"🪑 Sali €",key:"sali"},{label:"🪑 Sali kpl",key:"sali_kpl"},
+                  {label:"🛵 Montana Wolt €",key:"montana_wolt"},{label:"🛵 MW kpl",key:"mw_kpl"},
+                  {label:"🛵 Rotana €",key:"rotana"},{label:"🛵 Rot kpl",key:"rot_kpl"},
+                  {label:"🛵 Dubai €",key:"dubai"},{label:"🛵 Dub kpl",key:"dub_kpl"},
+                ].map(f=>(
+                  <div key={f.key}>
+                    <div style={{fontSize:10,color:"#555",marginBottom:3}}>{f.label}</div>
+                    <input type="number" placeholder="0" value={woltSales[f.key]||""} onChange={e=>setWoltSales({...woltSales,[f.key]:e.target.value})} style={{width:"100%",padding:"8px 10px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.05)",color:"#fff",fontSize:13,outline:"none",boxSizing:"border-box"}}/>
                   </div>
+                ))}
+              </div>
+              <button onClick={()=>{
+                if(!woltSales.date){notify("Valitse päivämäärä!");return;}
+                if(editEntry){
+                  const updated=woltHistory.map(e=>e.date===editEntry.date?{...woltSales}:e);
+                  setWoltHistory(updated);localStorage.setItem("montana_wolt_history",JSON.stringify(updated));
+                  setEditEntry(null);notify("✅ Päivitetty!");
+                }else{
+                  const exists=woltHistory.find(e=>e.date===woltSales.date);
+                  if(exists){notify("⚠️ Tänään on jo merkintä!");return;}
+                  const updated=[...woltHistory,{...woltSales}].sort((a,b)=>new Date(b.date)-new Date(a.date));
+                  setWoltHistory(updated);localStorage.setItem("montana_wolt_history",JSON.stringify(updated));
+                  notify("✅ Tallennettu!");
+                }
+                setWoltSales({date:new Date().toISOString().split("T")[0],sali:"",sali_kpl:"",montana_wolt:"",mw_kpl:"",rotana:"",rot_kpl:"",dubai:"",dub_kpl:""});
+              }} style={{width:"100%",padding:"12px",borderRadius:10,border:"none",background:"#e8a020",color:"#000",fontWeight:800,cursor:"pointer",fontSize:14}}>
+                {editEntry?"✅ Päivitä":"💾 Tallenna päivä"}
+              </button>
+            </div>
 
-                  {/* SUMMARY TABLE */}
-                  <div style={{background:"rgba(255,255,255,0.03)",borderRadius:14,padding:20,marginBottom:14,border:"1px solid rgba(255,255,255,0.06)"}}>
-                    <div style={{fontWeight:800,fontSize:14,color:"#fff",marginBottom:14}}>📊 Yhteenveto — {filtered.length} päivää</div>
-                    <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:0}}>
-                      <div style={{fontSize:11,color:"#333",padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,0.05)",fontWeight:700}}>Ravintola</div>
-                      <div style={{fontSize:11,color:"#333",padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,0.05)",fontWeight:700,textAlign:"center"}}>Tilaukset</div>
-                      <div style={{fontSize:11,color:"#333",padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,0.05)",fontWeight:700,textAlign:"right"}}>Myynti</div>
-                      {[["🍽️ Sali","#e8a020",totals.sali,totals.sali_kpl],["🛵 Montana Wolt","#f97316",totals.mw,totals.mw_kpl],["🍕 Rotana","#7c6ff7",totals.rot,totals.rot_kpl],["🥙 Dubai","#22c98a",totals.dub,totals.dub_kpl]].map(([label,color,sum,kpl],i)=>(
-                        <div key={i} style={{display:"contents"}}>
-                          <div style={{padding:"9px 0",borderBottom:"1px solid rgba(255,255,255,0.05)",fontSize:13,fontWeight:600,color:"#ddd"}}>{label}</div>
-                          <div style={{padding:"9px 0",borderBottom:"1px solid rgba(255,255,255,0.05)",fontSize:13,fontWeight:700,color:"#888",textAlign:"center"}}>{kpl>0?`${kpl} kpl`:"—"}</div>
-                          <div style={{padding:"9px 0",borderBottom:"1px solid rgba(255,255,255,0.05)",fontSize:14,fontWeight:800,color,textAlign:"right"}}>€{sum.toFixed(2)}</div>
-                        </div>
-                      ))}
-                      <div style={{padding:"12px 0 0",fontSize:15,fontWeight:900,color:"#fff"}}>🏆 Kaikki yhteensä</div>
-                      <div style={{padding:"12px 0 0",fontSize:14,fontWeight:900,color:"#fff",textAlign:"center"}}>{totals.all_kpl>0?`${totals.all_kpl} kpl`:"—"}</div>
-                      <div style={{padding:"12px 0 0",fontSize:20,fontWeight:900,color:"#e8a020",textAlign:"right"}}>€{totals.all.toFixed(2)}</div>
+            {/* HISTORY */}
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18}}>
+              <div style={{fontWeight:800,fontSize:14,marginBottom:12}}>📋 Historia ({filtered.length} päivää)</div>
+              {filtered.length===0?<div style={{color:"#444",fontSize:13,textAlign:"center",padding:20}}>Ei merkintöjä</div>:
+              <div style={{display:"grid",gap:6}}>
+                {filtered.slice(0,20).map((entry,i)=>{
+                  const dayRev=(parseFloat(entry.sali)||0)+(parseFloat(entry.montana_wolt)||0)+(parseFloat(entry.rotana)||0)+(parseFloat(entry.dubai)||0);
+                  const dayKpl=(parseInt(entry.sali_kpl)||0)+(parseInt(entry.mw_kpl)||0)+(parseInt(entry.rot_kpl)||0)+(parseInt(entry.dub_kpl)||0);
+                  return <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 60px 50px 60px",gap:6,alignItems:"center",padding:"8px 10px",borderRadius:8,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)"}}>
+                    <div style={{fontSize:12,color:"#888"}}>{entry.date}</div>
+                    <div style={{fontSize:12,fontWeight:700,color:"#e8a020"}}>{dayRev.toFixed(0)}€</div>
+                    <div style={{fontSize:11,color:"#555"}}>{dayKpl}kpl</div>
+                    <div style={{display:"flex",gap:4}}>
+                      <button onClick={()=>{setEditEntry(entry);setWoltSales({...entry});}} style={{padding:"3px 7px",borderRadius:5,border:"1px solid rgba(255,165,0,0.3)",background:"rgba(255,165,0,0.1)",color:"#f59e0b",cursor:"pointer",fontSize:10}}>✏️</button>
+                      <button onClick={()=>{const u=woltHistory.filter(e=>e.date!==entry.date);setWoltHistory(u);localStorage.setItem("montana_wolt_history",JSON.stringify(u));notify("🗑️ Poistettu");}} style={{padding:"3px 7px",borderRadius:5,border:"1px solid rgba(239,68,68,0.3)",background:"rgba(239,68,68,0.1)",color:"#ef4444",cursor:"pointer",fontSize:10}}>🗑️</button>
                     </div>
-                  </div>
-
-                  {/* DAILY LIST */}
-                  <div style={{background:"rgba(255,255,255,0.03)",borderRadius:14,padding:18,border:"1px solid rgba(255,255,255,0.06)"}}>
-                    <div style={{fontWeight:700,fontSize:13,color:"#666",marginBottom:12}}>📅 Päiväkohtainen historia</div>
-                    {filtered.map((entry,i)=>{
-                      const dayTotal=[entry.sali,entry.montana_wolt,entry.rotana,entry.dubai].reduce((s,v)=>s+(parseFloat(v)||0),0);
-                      return(
-                        <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:i<filtered.length-1?"1px solid rgba(255,255,255,0.05)":"none"}}>
-                          <div style={{fontSize:12,color:"#888",minWidth:95}}>{entry.date}</div>
-                          <div style={{display:"flex",gap:8,flex:1,justifyContent:"center",flexWrap:"wrap"}}>
-                            {[["sali","sali_kpl","#e8a020"],["montana_wolt","mw_kpl","#f97316"],["rotana","rot_kpl","#7c6ff7"],["dubai","dub_kpl","#22c98a"]].map(([id,kplId,color])=>(
-                              parseFloat(entry[id]||0)>0?<span key={id} style={{fontSize:11,color,fontWeight:700}}>
-                                {entry[kplId]?`${entry[kplId]}kpl · `:""} €{parseFloat(entry[id]||0).toFixed(2)}
-                              </span>:null
-                            ))}
-                          </div>
-                          <div style={{color:"#e8a020",fontWeight:800,fontSize:13,minWidth:75,textAlign:"right"}}>€{dayTotal.toFixed(2)}</div>
-                          <div style={{display:"flex",gap:5,marginLeft:10}}>
-                            <button onClick={()=>{setEditEntry(entry);setWoltSales({...entry});setScreen("analytics");}} style={{padding:"4px 8px",borderRadius:6,border:"1px solid rgba(255,165,0,0.3)",background:"rgba(255,165,0,0.1)",color:"#f59e0b",cursor:"pointer",fontSize:10,fontWeight:700}}>✏️</button>
-                            <button onClick={()=>{
-                              if(window.confirm(`Poista ${entry.date}?`)){
-                                const newH=woltHistory.filter(x=>x.date!==entry.date);
-                                setWoltHistory(newH);
-                                try{localStorage.setItem("montana_wolt_history",JSON.stringify(newH));}catch(e){}
-                                notify("🗑️ Poistettu!");
-                              }
-                            }} style={{padding:"4px 8px",borderRadius:6,border:"1px solid rgba(239,68,68,0.3)",background:"rgba(239,68,68,0.1)",color:"#ef4444",cursor:"pointer",fontSize:10,fontWeight:700}}>🗑️</button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* INTERNAL SALES */}
-            <div style={{background:"rgba(255,255,255,0.03)",borderRadius:14,padding:18,marginTop:14,border:"1px solid rgba(255,255,255,0.06)"}}>
-              <div style={{fontWeight:700,fontSize:13,color:"#666",marginBottom:14}}>🧾 Sisäinen myynti — Tänään</div>
-              {todayOrders.length===0?(
-                <div style={{color:"#333",fontSize:13,textAlign:"center",padding:20}}>Ei sisäistä myyntiä vielä</div>
-              ):(
-                <div>
-                  {todayOrders.map((o,i)=>(
-                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:i<todayOrders.length-1?"1px solid rgba(255,255,255,0.05)":"none"}}>
-                      <div>
-                        <div style={{fontWeight:700,fontSize:13}}>#{o.num} · {RESTS[o.rest]?.emoji} · {o.payment}{o.table?` · ${o.table}`:""}</div>
-                        <div style={{color:"#444",fontSize:11,marginTop:1}}>{o.items.map(i=>i.name).slice(0,3).join(", ")}</div>
-                      </div>
-                      <div style={{color:"#10b981",fontWeight:800,fontSize:15}}>€{o.total.toFixed(2)}</div>
-                    </div>
-                  ))}
-                  <div style={{display:"flex",justifyContent:"space-between",marginTop:12,paddingTop:12,borderTop:"1px solid rgba(255,255,255,0.08)"}}>
-                    <span style={{fontWeight:700}}>{t.total}</span>
-                    <span style={{color:"#e8a020",fontWeight:900,fontSize:18}}>€{todaySales.toFixed(2)}</span>
-                  </div>
-                </div>
-              )}
+                  </div>;
+                })}
+              </div>}
             </div>
           </div>
-        )}
+          );
+        })()}
 
-        {/* AI ASSISTANT */}
         {screen==="assistant"&&(
           <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 116px)"}}>
             <div style={{marginBottom:12}}>
