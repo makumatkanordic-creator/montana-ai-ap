@@ -8,16 +8,16 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
     "cors": "^2.8.6",
-    "express": "^5.2.1",
+    "express": "^4.22.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-scripts": "5.0.1",
-    "serve": "^14.2.6",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "build": "react-scripts build",
-    "start": "serve -s build -l $PORT"
+    "start": "node server.js",
+    "dev": "react-scripts start"
   },
   "eslintConfig": {
     "extends": [

@@ -363,7 +363,7 @@ const callAI = async (prompt) => {
 Instagram: @townravintolatoy | TikTok: @montanaristorante | Wolt: 9.6/10
 المالك يعمل وحده 7 أيام/أسبوع. ردود قصيرة وعملية. تحدث بلغة السؤال.`;
   try {
-    const res = await fetch("http://localhost:3001/api/chat", {
+    const res = await fetch("http://localhost:3005/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt, system }),
