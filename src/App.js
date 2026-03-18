@@ -65,7 +65,6 @@ const MENU = {
     {id:"mi_pa3", cat:"🍝 Pastat", name:"Alfredo",                desc:"Valkosipulikerma, kananrinta, marinoitu punasipuli, kirsikkatomaatti, parmesaani, rucola. Sis. juoma.", price:16.50, popular:false},
     {id:"mi_pa4", cat:"🍝 Pastat", name:"Con Pesto di Feta",      desc:"Pesto, feta, kirsikkatomaatti, marinoitu punasipuli, parmesaani, rucola. Sis. juoma.",               price:16.50, popular:false},
     {id:"mi_pa5", cat:"🍝 Pastat", name:"Mozzarella Pasta",       desc:"Pesto, mozzarella, kirsikkatomaatti, parmesaani, rucola. Sis. juoma.",                               price:16.50, popular:false},
-    {id:"mi_pa6", cat:"🍝 Pastat", name:"Punainen Pesto Pasta",   desc:"Friteerattu kana, punasipuli, rucola, parmesaani. Sis. juoma.",                                      price:16.50, popular:true},
     // MIX داخل sis. 0,33l juoma
     {id:"mi_mx1", cat:"🍱 Mix", name:"Lehtipihvi",            desc:"2 possun ulkofileepihvi, grillikasvikset + maalaisranskalaiset. Sis. juoma.",                                                      price:20.00, popular:false},
     {id:"mi_mx2", cat:"🍱 Mix", name:"Kana Bowl",             desc:"Friteerattu kana, riisi, soijakastike, marinoitu kurkku, porkkana, soijapapu, marinoitu mango, seesami, teriyaki-majoneesi. Sis. juoma.", price:18.00, popular:true},
@@ -118,6 +117,16 @@ const MENU = {
     {id:"mi_jm10", cat:"🥤 Juomat", name:"Coca-Cola 1,5L",           desc:"", price:6.00, popular:false},
     {id:"mi_jm11", cat:"🥤 Juomat", name:"Coca-Cola Zero 1,5L",      desc:"", price:6.00, popular:false},
     {id:"mi_jm12", cat:"🥤 Juomat", name:"Fanta 1,5L",               desc:"", price:6.00, popular:false},
+    {id:"mi_jm13", cat:"🥤 Juomat", name:"Muu Juoma 0,33L",          desc:"", price:2.00, popular:false},
+    {id:"mi_jm14", cat:"🥤 Juomat", name:"Muu Juoma 0,5L",           desc:"", price:4.00, popular:false},
+    {id:"mi_jm15", cat:"🥤 Juomat", name:"Kahvi",                    desc:"", price:2.50, popular:false},
+    // LISÄT
+    {id:"mi_ls1", cat:"➕ Lisät", name:"Tupla Kebabliha",   desc:"Lisää tuplaannos kebablihaa", price:5.50, popular:false},
+    {id:"mi_ls2", cat:"➕ Lisät", name:"Tupla Kanadönner",  desc:"Lisää tuplaannos kanadönneriä", price:5.50, popular:false},
+    {id:"mi_ls3", cat:"➕ Lisät", name:"Lisätäyte 0,50€",  desc:"", price:0.50, popular:false},
+    {id:"mi_ls4", cat:"➕ Lisät", name:"Lisätäyte 1€",     desc:"", price:1.00, popular:false},
+    {id:"mi_ls5", cat:"➕ Lisät", name:"Lisätäyte 2€",     desc:"", price:2.00, popular:false},
+    {id:"mi_ls6", cat:"➕ Lisät", name:"Sämylä",           desc:"Friteerattu halloumi, marinoitu punasipuli, kurkku, kirsikkatomaatti, basilikamajoneesi", price:5.00, popular:false},
   ],
 
   /* ─── MONTANA WOLT ─── */
@@ -130,7 +139,6 @@ const MENU = {
     {id:"mw_b5", cat:"🍔 Burgerit", name:"La Brutal BBQ",    desc:"180g naudanlihapihvi, cheddarkastike, paahdettu sipuli, pekoni, BBQ + ranskalaiset. Sis. juoma.", price:18.50, popular:false},
     // PASTAT
     {id:"mw_p1", cat:"🍝 Pastat", name:"Mustekala Pasta",        desc:"Valkosipulikerma, mustekala, rucola, parmesaani. Sis. juoma.",                                    price:17.50, popular:false},
-    {id:"mw_p2", cat:"🍝 Pastat", name:"Punainen Pesto Pasta",   desc:"Friteerattu kana, punasipuli, rucola, parmesaani. Sis. juoma.",                                  price:16.50, popular:true},
     {id:"mw_p3", cat:"🍝 Pastat", name:"Alfredo",                desc:"Valkosipulikerma, kana, punasipuli, kirsikkatomaatti, parmesaani, rucola. Sis. juoma.",          price:16.50, popular:false},
     {id:"mw_p4", cat:"🍝 Pastat", name:"Gamberetti",             desc:"Valkosipulikerma, katkaravut, chili, parmesaani, rucola. Sis. juoma.",                           price:16.50, popular:false},
     {id:"mw_p5", cat:"🍝 Pastat", name:"Con Pesto di Feta",      desc:"Pesto, feta, kirsikkatomaatti, punasipuli, parmesaani, rucola. Sis. juoma.",                    price:16.50, popular:false},
@@ -248,7 +256,6 @@ const MENU = {
   dubai: [
     // PASTAT
     {id:"db_p1", cat:"🍝 Pasta", name:"Mustekala Pasta",       desc:"Valkosipulikerma, rucola, parmesaani",                   price:17.00, popular:false},
-    {id:"db_p2", cat:"🍝 Pasta", name:"Punainen Pesto Pasta",  desc:"Friteerattu kana, punasipuli, rucola, parmesaani",       price:16.50, popular:true},
     {id:"db_p3", cat:"🍝 Pasta", name:"Gamberétti",            desc:"Katkarapu, chili, parmesaani",                           price:16.00, popular:true},
     {id:"db_p4", cat:"🍝 Pasta", name:"Alfredo",               desc:"Kananrinta, valkosipulikerma",                           price:16.00, popular:true},
     {id:"db_p5", cat:"🍝 Pasta", name:"Con Pesto di Feta",     desc:"Pesto, feta, kirsikkatomaatti",                          price:16.00, popular:false},
@@ -442,6 +449,8 @@ export default function MontanaAI() {
   const [payMethod, setPayMethod] = useState("card");
   const [discount, setDiscount] = useState(0);
   const [fantasiaItem, setFantasiaItem] = useState(null);
+  const [kebabChoiceItem, setKebabChoiceItem] = useState(null);
+  const [kebabType, setKebabType] = useState("kebabliha");
   const [fantasiaToppings, setFantasiaToppings] = useState([]);
   const [tableNum, setTableNum] = useState("");
   const [orderNote, setOrderNote] = useState("");
@@ -499,6 +508,13 @@ export default function MontanaAI() {
     if(item.name && item.name.startsWith("Fantasia")){
       setFantasiaItem(item);
       setFantasiaToppings([]);
+      return;
+    }
+    // Kebab or Rulla — ask Kebabliha or Kanadönner
+    const isKebab = item.cat && (item.cat.includes("Kebab") || item.cat.includes("Rulla"));
+    const noChoice = ["Kebab Erikoinen","Kebab Special","Kana Kebabrulla Ranskalaisilla","Iskender Kebab"].includes(item.name);
+    if(isKebab && !noChoice){
+      setKebabChoiceItem(item);
       return;
     }
     setCart(p=>{ const ex=p.find(i=>i.id===item.id); return ex?p.map(i=>i.id===item.id?{...i,qty:i.qty+1}:i):[...p,{...item,qty:1}]; });
@@ -785,10 +801,11 @@ export default function MontanaAI() {
                     ))}
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
-                    {filteredMenu.slice(0,36).map(item=>(
+                    {filteredMenu.map((item,idx)=>(
                       <button key={item.id} onClick={()=>addToCart(item)} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 8px",cursor:"pointer",textAlign:"left",position:"relative"}}>
                         {item.popular&&<div style={{position:"absolute",top:4,right:4,fontSize:7,padding:"1px 4px",borderRadius:4,background:`${accent}22`,color:accent,fontWeight:700}}>⭐</div>}
-                        <div style={{fontSize:9,color:"#444",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.cat}</div>
+                        <div style={{position:"absolute",top:4,left:5,fontSize:8,color:"#333",fontWeight:700}}>{idx+1}</div>
+                        <div style={{fontSize:9,color:"#444",marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginTop:8}}>{item.cat}</div>
                         <div style={{color:"#ddd",fontWeight:600,fontSize:11,marginBottom:4,lineHeight:1.3,minHeight:28}}>{item.name}</div>
                         <div style={{color:accent,fontWeight:800,fontSize:13}}>€{item.price.toFixed(2)}</div>
                       </button>
@@ -1444,6 +1461,42 @@ Anna vastaus suomeksi, käytännölliset neuvot.`);
           </div>
         )}
       </div>
+
+      {/* KEBAB CHOICE POPUP */}
+      {kebabChoiceItem&&(
+        <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.85)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{background:"#1a1a1a",border:"1px solid rgba(124,111,247,0.4)",borderRadius:20,padding:24,maxWidth:360,width:"100%"}}>
+            <div style={{fontWeight:900,fontSize:18,color:"#7c6ff7",marginBottom:4}}>🥙 {kebabChoiceItem.name}</div>
+            <div style={{fontSize:12,color:"#555",marginBottom:20}}>Valitse lihatyyppi</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
+              {[
+                {id:"kebabliha", label:"🥩 Kebabliha", desc:"Klassinen kebab"},
+                {id:"kanadonner", label:"🍗 Kanadönner", desc:"Kana döner"},
+              ].map(k=>(
+                <button key={k.id} onClick={()=>setKebabType(k.id)} style={{padding:"16px 10px",borderRadius:12,border:`2px solid ${kebabType===k.id?"#7c6ff7":"rgba(255,255,255,0.08)"}`,background:kebabType===k.id?"rgba(124,111,247,0.15)":"rgba(255,255,255,0.02)",color:kebabType===k.id?"#7c6ff7":"#888",cursor:"pointer",textAlign:"center"}}>
+                  <div style={{fontSize:22,marginBottom:6}}>{k.id==="kebabliha"?"🥩":"🍗"}</div>
+                  <div style={{fontSize:13,fontWeight:700}}>{k.id==="kebabliha"?"Kebabliha":"Kanadönner"}</div>
+                  <div style={{fontSize:10,color:"#555",marginTop:3}}>{k.desc}</div>
+                </button>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setKebabChoiceItem(null)} style={{flex:1,padding:"11px",borderRadius:10,border:"1px solid rgba(255,255,255,0.1)",background:"transparent",color:"#666",cursor:"pointer",fontSize:13}}>Peruuta</button>
+              <button onClick={()=>{
+                const item = {...kebabChoiceItem,
+                  name: kebabChoiceItem.name + (kebabType==="kanadonner"?" (Kanadönner)":""),
+                  id: kebabChoiceItem.id+"_"+kebabType+"_"+Date.now()
+                };
+                setCart(p=>[...p,{...item,qty:1}]);
+                setKebabChoiceItem(null);
+                notify("✅ Lisätty — "+(kebabType==="kanadonner"?"Kanadönner":"Kebabliha"));
+              }} style={{flex:2,padding:"11px",borderRadius:10,border:"none",background:"#7c6ff7",color:"#fff",cursor:"pointer",fontSize:13,fontWeight:800}}>
+                ✅ Lisää — €{kebabChoiceItem.price.toFixed(2)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* FANTASIA POPUP */}
       {fantasiaItem&&(
