@@ -449,6 +449,7 @@ export default function MontanaAI() {
     const today = new Date().toISOString().split('T')[0];
     return { date: today, sali: "", sali_kpl: "", montana_wolt: "", mw_kpl: "", rotana: "", rot_kpl: "", dubai: "", dub_kpl: "" };
   });
+  const [serverSynced, setServerSynced] = useState(false);
   const [woltHistory, setWoltHistory] = useState(() => {
     try {
       const saved = localStorage.getItem("montana_wolt_history");
@@ -1074,15 +1075,23 @@ Anna vastaus suomeksi, käytännölliset neuvot.`);
               <button onClick={()=>{
                 if(!woltSales.date){notify("Valitse päivämäärä!");return;}
                 if(editEntry){
-                  const updated=woltHistory.map(e=>e.date===editEntry.date?{...woltSales}:e);
-                  setWoltHistory(updated);localStorage.setItem("montana_wolt_history",JSON.stringify(updated));
-                  setEditEntry(null);notify("✅ Päivitetty!");
+                  const entry={...woltSales};
+                  fetch("/api/sales", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(entry)})
+                    .then(()=>{
+                      const updated=woltHistory.map(e=>e.date===editEntry.date?entry:e);
+                      setWoltHistory(updated);localStorage.setItem("montana_wolt_history",JSON.stringify(updated));
+                      setEditEntry(null);notify("✅ Päivitetty!");
+                    }).catch(()=>notify("⚠️ Virhe tallennuksessa"));
                 }else{
-                  const exists=woltHistory.find(e=>e.date===woltSales.date);
-                  if(exists){notify("⚠️ Tänään on jo merkintä!");return;}
-                  const updated=[...woltHistory,{...woltSales}].sort((a,b)=>new Date(b.date)-new Date(a.date));
-                  setWoltHistory(updated);localStorage.setItem("montana_wolt_history",JSON.stringify(updated));
-                  notify("✅ Tallennettu!");
+                  const entry = {...woltSales};
+                  fetch("/api/sales", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(entry)})
+                    .then(r=>r.json()).then(()=>{
+                      const exists=woltHistory.find(e=>e.date===entry.date);
+                      const updated=exists?woltHistory.map(e=>e.date===entry.date?entry:e):[...woltHistory,entry];
+                      const sorted=updated.sort((a,b)=>new Date(b.date)-new Date(a.date));
+                      setWoltHistory(sorted);localStorage.setItem("montana_wolt_history",JSON.stringify(sorted));
+                      notify("✅ Tallennettu palvelimelle!");
+                    }).catch(()=>notify("⚠️ Tallennettu vain paikallisesti"));
                 }
                 setWoltSales({date:new Date().toISOString().split("T")[0],sali:"",sali_kpl:"",montana_wolt:"",mw_kpl:"",rotana:"",rot_kpl:"",dubai:"",dub_kpl:""});
               }} style={{width:"100%",padding:"12px",borderRadius:10,border:"none",background:"#e8a020",color:"#000",fontWeight:800,cursor:"pointer",fontSize:14}}>
@@ -1104,7 +1113,7 @@ Anna vastaus suomeksi, käytännölliset neuvot.`);
                     <div style={{fontSize:11,color:"#555"}}>{dayKpl}kpl</div>
                     <div style={{display:"flex",gap:4}}>
                       <button onClick={()=>{setEditEntry(entry);setWoltSales({...entry});}} style={{padding:"3px 7px",borderRadius:5,border:"1px solid rgba(255,165,0,0.3)",background:"rgba(255,165,0,0.1)",color:"#f59e0b",cursor:"pointer",fontSize:10}}>✏️</button>
-                      <button onClick={()=>{const u=woltHistory.filter(e=>e.date!==entry.date);setWoltHistory(u);localStorage.setItem("montana_wolt_history",JSON.stringify(u));notify("🗑️ Poistettu");}} style={{padding:"3px 7px",borderRadius:5,border:"1px solid rgba(239,68,68,0.3)",background:"rgba(239,68,68,0.1)",color:"#ef4444",cursor:"pointer",fontSize:10}}>🗑️</button>
+                      <button onClick={()=>{fetch("/api/sales/"+entry.date,{method:"DELETE"}).then(()=>{const u=woltHistory.filter(e=>e.date!==entry.date);setWoltHistory(u);localStorage.setItem("montana_wolt_history",JSON.stringify(u));notify("🗑️ Poistettu");}).catch(()=>notify("⚠️ Virhe"));}} style={{padding:"3px 7px",borderRadius:5,border:"1px solid rgba(239,68,68,0.3)",background:"rgba(239,68,68,0.1)",color:"#ef4444",cursor:"pointer",fontSize:10}}>🗑️</button>
                     </div>
                   </div>;
                 })}
