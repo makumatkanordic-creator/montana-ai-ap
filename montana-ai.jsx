@@ -381,6 +381,13 @@ const doPrint = (lines) => {
   setTimeout(()=>{ w.print(); setTimeout(()=>w.close(),800); },300);
 };
 
+const FANTASIA_TOPPINGS = [
+  "Ananas","Aurajuusto","Feta","Herkkusieni","Jalapeno","Jauheliha",
+  "Kana","Katkarapu","Kebabliha","Kinkku","Mozzarella","Oliivi",
+  "Paprika","Pekoni","Pepperoni","Rucola","Salami","Sipuli",
+  "Tonnikala","Valkosipuli","Tomaatti","BBQ-kastike"
+];
+
 const printReceipt = (order, restId) => {
   const restName = restId === "montana_inside" || restId === "montana_wolt" ? "Montana Ristorante" : restId === "rotana" ? "Rotana Restaurant" : "Dubai Restaurant";
   const payLabel = order.payment==="cash"?"Käteinen":order.payment==="card"?"Korttimaksu":"MobilePay";
@@ -433,6 +440,9 @@ export default function MontanaAI() {
   const [cart, setCart] = useState([]);
   const [orderNum, setOrderNum] = useState(1001);
   const [payMethod, setPayMethod] = useState("card");
+  const [discount, setDiscount] = useState(0);
+  const [fantasiaItem, setFantasiaItem] = useState(null);
+  const [fantasiaToppings, setFantasiaToppings] = useState([]);
   const [tableNum, setTableNum] = useState("");
   const [orderNote, setOrderNote] = useState("");
   const [saleComplete, setSaleComplete] = useState(null);
@@ -485,10 +495,18 @@ export default function MontanaAI() {
   const notify = (msg,type="success") => { setNotif({msg,type}); setTimeout(()=>setNotif(null),3000); };
   useEffect(()=>{ chatRef.current?.scrollIntoView({behavior:"smooth"}); },[chatMsgs]);
 
-  const addToCart = item => setCart(p=>{ const ex=p.find(i=>i.id===item.id); return ex?p.map(i=>i.id===item.id?{...i,qty:i.qty+1}:i):[...p,{...item,qty:1}]; });
+  const addToCart = item => {
+    if(item.name && item.name.startsWith("Fantasia")){
+      setFantasiaItem(item);
+      setFantasiaToppings([]);
+      return;
+    }
+    setCart(p=>{ const ex=p.find(i=>i.id===item.id); return ex?p.map(i=>i.id===item.id?{...i,qty:i.qty+1}:i):[...p,{...item,qty:1}]; });
+  };
   const removeFromCart = id => setCart(p=>p.filter(i=>i.id!==id));
   const updateQty = (id,d) => setCart(p=>p.map(i=>i.id===id?{...i,qty:Math.max(1,i.qty+d)}:i));
-  const cartTotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const cartSubtotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const cartTotal = cartSubtotal * (1 - discount/100);
 
   const completeSale = () => {
     if(!cart.length) return;
@@ -807,6 +825,15 @@ export default function MontanaAI() {
                   <div style={{borderTop:"1px solid rgba(255,255,255,0.08)",paddingTop:10,marginTop:10}}>
                     <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
                       <span style={{fontWeight:700,fontSize:13}}>{t.orderTotal}</span>
+                      <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                        <span style={{fontSize:11,color:"#555"}}>Alennus:</span>
+                        {[0,10,15,20].map(d=>(
+                          <button key={d} onClick={()=>setDiscount(d)} style={{padding:"4px 10px",borderRadius:7,border:"none",background:discount===d?"#e8a020":"rgba(255,255,255,0.06)",color:discount===d?"#000":"#666",cursor:"pointer",fontSize:11,fontWeight:700}}>
+                            {d===0?"Ei":d+"%"}
+                          </button>
+                        ))}
+                      </div>
+                      {discount>0&&<div style={{fontSize:11,color:"#10b981"}}>✅ Alennus {discount}% — säästät €{(cartSubtotal*discount/100).toFixed(2)}</div>}
                       <span style={{color:accent,fontWeight:900,fontSize:20}}>€{cartTotal.toFixed(2)}</span>
                     </div>
                     <div style={{display:"flex",gap:4,marginBottom:8}}>
@@ -1417,6 +1444,46 @@ Anna vastaus suomeksi, käytännölliset neuvot.`);
           </div>
         )}
       </div>
+
+      {/* FANTASIA POPUP */}
+      {fantasiaItem&&(
+        <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.85)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{background:"#1a1a1a",border:"1px solid rgba(232,160,32,0.4)",borderRadius:20,padding:24,maxWidth:400,width:"100%",maxHeight:"80vh",overflowY:"auto"}}>
+            <div style={{fontWeight:900,fontSize:18,color:"#e8a020",marginBottom:4}}>🍕 {fantasiaItem.name}</div>
+            <div style={{fontSize:12,color:"#555",marginBottom:16}}>{fantasiaItem.desc} — valitse täytteet</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:20}}>
+              {FANTASIA_TOPPINGS.map(t=>{
+                const maxToppings = fantasiaItem.name.includes("2")?2:fantasiaItem.name.includes("3")?3:4;
+                const selected = fantasiaToppings.includes(t);
+                return <button key={t} onClick={()=>{
+                  if(selected) setFantasiaToppings(p=>p.filter(x=>x!==t));
+                  else if(fantasiaToppings.length < maxToppings) setFantasiaToppings(p=>[...p,t]);
+                  else notify(`Max ${maxToppings} täytettä!`);
+                }} style={{padding:"6px 12px",borderRadius:8,border:"none",background:selected?"#e8a020":"rgba(255,255,255,0.06)",color:selected?"#000":"#888",cursor:"pointer",fontSize:12,fontWeight:selected?700:400}}>
+                  {selected?"✓ ":""}{t}
+                </button>;
+              })}
+            </div>
+            <div style={{fontSize:12,color:"#666",marginBottom:16}}>
+              Valittu: <span style={{color:"#e8a020",fontWeight:700}}>{fantasiaToppings.join(", ")||"—"}</span>
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setFantasiaItem(null)} style={{flex:1,padding:"11px",borderRadius:10,border:"1px solid rgba(255,255,255,0.1)",background:"transparent",color:"#666",cursor:"pointer",fontSize:13}}>Peruuta</button>
+              <button onClick={()=>{
+                const maxToppings = fantasiaItem.name.includes("2")?2:fantasiaItem.name.includes("3")?3:4;
+                if(fantasiaToppings.length < maxToppings){notify(`Valitse ${maxToppings} täytettä!`);return;}
+                const item = {...fantasiaItem, desc:fantasiaToppings.join(", "), id:fantasiaItem.id+"_"+Date.now()};
+                setCart(p=>[...p,{...item,qty:1}]);
+                setFantasiaItem(null);
+                notify("✅ Lisätty!");
+              }} style={{flex:2,padding:"11px",borderRadius:10,border:"none",background:"#e8a020",color:"#000",cursor:"pointer",fontSize:13,fontWeight:800}}>
+                ✅ Lisää tilaukseen — €{fantasiaItem.price.toFixed(2)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
