@@ -1211,206 +1211,368 @@ Anna vastaus suomeksi, käytännölliset neuvot.`);
 
         {/* CONTENT — MARKETING HUB */}
         {screen==="content"&&(()=>{
-          const DISHES = [
-            {name:"Pizza Montana ⭐", tip:"Näytä juusto sulavana lähikuvassa", type:"pizza"},
-            {name:"Pizza Americana",  tip:"Leikkaa pizza hitaasti kameran edessä", type:"pizza"},
-            {name:"Kebab Mix 🥙",     tip:"Täytä rulla hitaasti — näytä täytteet", type:"kebab"},
-            {name:"Montana Burger 🍔",tip:"Puraise ja näytä sisältö", type:"burger"},
-            {name:"Pizza Parma Rucola",tip:"Esittele tuoreet täytteet", type:"pizza"},
-            {name:"Hot Wings 🍗",     tip:"Kastike + siipi lähikuva", type:"wings"},
-            {name:"Pasta Carbonara 🍝",tip:"Haarukka pyörittää pastaa", type:"pasta"},
-            {name:"Pizza Frutti di Mare",tip:"Äyriäiset lähikuvassa", type:"pizza"},
-          ];
-          const HASHTAGS = {
-            base:"#turku #turkufood #turkueats #wolt #woltturku #montanaristorante #ravintola #lounas #visitturku #finnishfood",
-            pizza:"#pizza #pizzaturku #italianofood #pizzalover #pizzatime",
-            kebab:"#kebab #kebabturku #kebablover #streetfood #grilliruoka",
-            burger:"#burger #burgerlover #hamburger #fastfood #burgertime",
-            wings:"#hotwings #chickenwings #spicyfood #wings #kanaruoka",
-            pasta:"#pasta #pastaturku #italianfood #carbonara #pastatime",
-          };
           const today = new Date();
+          const dayNames = ["Su","Ma","Ti","Ke","To","Pe","La"];
           const isWeekend = today.getDay()===0||today.getDay()===6;
           const TIMES = isWeekend?["12:00","17:00","20:00"]:["14:30","17:30","20:00"];
-          const todayDish = DISHES[today.getDate()%DISHES.length];
-          const todayTags = HASHTAGS.base+" "+( HASHTAGS[todayDish.type]||"");
-          const dayNames=["Su","Ma","Ti","Ke","To","Pe","La"];
 
-          const DAILY_PLAN = [
-            {
-              platform:"instagram", icon:"📸", name:"Instagram", color:"#e1306c",
-              posts:[
-                {type:"🖼️ Kuva",    time:TIMES[0], text:`🍽️ ${todayDish.name} — tuoretta ja herkullista!\n\nTule maistamaan tai tilaa Woltista 🛵\n📍 Tommilankatu 1, Turku\n⭐ Wolt 9.6/10\n${isWeekend?"La–Su 12:15–23:00":"Ma–Pe 15:00–23:30"}\n\n${todayTags} #instafood #foodporn`},
-                {type:"🎬 Reels",   time:TIMES[1], text:`🎬 ${todayDish.name} — katso miten se tehdään! ✨\n\nTilaa Woltista tai tule paikan päälle!\n📍 Tommilankatu 1, Turku ⭐ Wolt 9.6/10\n\n${todayTags} #reels #reelsinstagram #foodreels #viral`},
-              ]
-            },
-            {
-              platform:"tiktok", icon:"🎵", name:"TikTok", color:"#69c9d0",
-              posts:[
-                {type:"🎵 Video",   time:TIMES[1], text:`${todayDish.name} 🤤 Tämä muuttaa kaiken!\n\nTilaa Woltista Turku 🛵 tai tule paikan päälle!\n⭐ Wolt 9.6/10\n\n${todayTags} #fyp #foryou #foryoupage #tiktokfood #foodtok #viral`},
-                {type:"📸 Kuva",    time:TIMES[2], text:`Tiesitkö tämän? ${todayDish.name} on Turun paras! 🏆\n\nTommilankatu 1, Turku · Wolt 9.6/10 ⭐\n\n${todayTags} #fyp #foodtok #tiktokturku`},
-              ]
-            },
-            {
-              platform:"facebook", icon:"👥", name:"Facebook", color:"#1877f2",
-              posts:[
-                {type:"📝 Julkaisu", time:TIMES[0], text:`🍽️ Hei Turku! Tänään suosittelemme:\n\n${todayDish.name} — maistuu paremmalta kuin luulit!\n\nTule nauttimaan tai tilaa kotiin Woltista!\n📍 Tommilankatu 1, Turku\n📞 044 246 6447\n🕐 ${isWeekend?"La–Su 12:15–23:00":"Ma–Pe 15:00–23:30"}\n⭐ Wolt-arvosana 9.6/10\n\n${todayTags}`},
-                {type:"🖼️ Kuva+teksti",time:TIMES[2], text:`⭐ Montana Ristorante Turku\n\n${todayDish.name} — tilaa nyt Woltista tai käy paikan päällä!\n\n🗺️ Tommilankatu 1, Turku\n📞 044 246 6447\n\n${todayTags} #facebookturku`},
-              ]
-            },
+          const DISHES = [
+            {name:"Pizza Montana ⭐", tip:"Näytä juusto sulavana", type:"pizza", tags:"#pizza #pizzaturku"},
+            {name:"Pizza Americana",  tip:"Leikkaa pizza hitaasti", type:"pizza", tags:"#pizza #ananas"},
+            {name:"Kebab Mix 🥙",     tip:"Täytä rulla hitaasti", type:"kebab", tags:"#kebab #kebabturku"},
+            {name:"Montana Burger 🍔",tip:"Puraise ja näytä sisältö", type:"burger", tags:"#burger #burgerlover"},
+            {name:"Parma Rucola ✨",  tip:"Esittele tuoreet täytteet", type:"pizza", tags:"#pizza #parma"},
+            {name:"Hot Wings 🍗",     tip:"Kastike + siipi lähikuva", type:"wings", tags:"#hotwings #wings"},
+            {name:"Pasta Carbonara 🍝",tip:"Haarukka pyörittää pastaa", type:"pasta", tags:"#pasta #italianfood"},
           ];
 
-          const SCRIPTS = {
-            pizza:`"Katso tämä pizza... tuore taikina, paras juusto, suoraan uunista. Tilaa Woltista tai tule Tommilankatu 1 — Montana Ristorante Turku!"`,
-            kebab:`"Turun paras kebab on täällä! Tuore liha, tuoreet kasvikset... Tilaa Woltista tai tule maistamaan!"`,
-            burger:`"Montana Burger — katso kun puristan... täydellinen! Tilaa Woltista Turku!"`,
-            wings:`"Hot Wings jotka palavat sopivasti... kastike mukaan! Tilaa Woltista tai tule paikan päälle!"`,
-            pasta:`"Tuore pasta, kermainen kastike... Italia kohtaa Turku! Tilaa Woltista!"`,
+          const BASE_TAGS = "#turku #turkufood #wolt #woltturku #montanaristorante #ravintola #visitturku";
+          const todayDish = DISHES[today.getDate()%DISHES.length];
+          const todayTags = BASE_TAGS+" "+todayDish.tags;
+
+          // Weekly plan
+          const weekPlan = Array.from({length:7},(_,i)=>{
+            const d = new Date(today);
+            d.setDate(today.getDate()-today.getDay()+1+i);
+            const dish = DISHES[d.getDate()%DISHES.length];
+            const platforms = [
+              {id:"ig",  icon:"📸", name:"Instagram", color:"#e1306c", posts:["🖼️ Kuva","🎬 Reels"]},
+              {id:"tt",  icon:"🎵", name:"TikTok",    color:"#69c9d0", posts:["🎵 Video"]},
+              {id:"fb",  icon:"👥", name:"Facebook",  color:"#1877f2", posts:["📝 Julkaisu","🖼️ Kuva"]},
+            ];
+            const isT = d.toDateString()===today.toDateString();
+            const isPast = d<new Date(today.toDateString());
+            const wend = d.getDay()===0||d.getDay()===6;
+            return {date:d, day:dayNames[d.getDay()], dish, platforms, isT, isPast, time:wend?"12:00":"14:30"};
+          });
+
+          // Ad tracking state key
+          const ADS_KEY = "montana_ad_tracking";
+          const adStats = (() => {
+            try { return JSON.parse(localStorage.getItem(ADS_KEY)||"{}"); } catch{return {};}
+          })();
+          const saveAdStat = (platform, type, value) => {
+            const key = today.toISOString().split("T")[0]+"_"+platform+"_"+type;
+            const updated = {...adStats, [key]: (adStats[key]||0)+value};
+            localStorage.setItem(ADS_KEY, JSON.stringify(updated));
           };
+
+          // Calculate this week stats
+          const weekStats = {ig:{posts:0,views:0}, tt:{posts:0,views:0}, fb:{posts:0,views:0}};
+          Object.entries(adStats).forEach(([key,val])=>{
+            const parts = key.split("_");
+            if(parts.length>=3){
+              const platform = parts[1];
+              const type = parts[2];
+              if(weekStats[platform]){
+                if(type==="post") weekStats[platform].posts+=val;
+                if(type==="view") weekStats[platform].views+=val;
+              }
+            }
+          });
+
+          // Generate post text
+          const genPost = (dish, platform, postType) => {
+            const hour = isWeekend ? "12:15" : "15:00";
+            const texts = {
+              ig_kuva: `🍕 ${dish.name} — maistuu paremmalta kuin luulit!\n\nTule maistamaan tai tilaa Woltista 🛵\n📍 Tommilankatu 1, Turku\n🕐 ${isWeekend?"La–Su 12:15–23:00":"Ma–Pe 15:00–23:30"}\n⭐ Wolt 9.6/10\n\n${BASE_TAGS} ${dish.tags} #instafood #foodporn`,
+              ig_reels: `🎬 ${dish.name} — katso miten tehdään! ✨\n\nTilaa Woltista tai tule paikan päälle!\n📍 Tommilankatu 1, Turku ⭐ 9.6/10\n\n${BASE_TAGS} ${dish.tags} #reels #foodreels #viral`,
+              tt_video: `${dish.name} 🤤 Tämä muuttaa kaiken!\n\nTilaa Woltista Turku 🛵\n⭐ Wolt 9.6/10\n\n${BASE_TAGS} ${dish.tags} #fyp #foryou #foodtok #viral`,
+              fb_julkaisu: `🍽️ Hei Turku! Tänään suosittelemme:\n\n${dish.name} — maistuu paremmalta kuin luulit!\n\nTule nauttimaan tai tilaa kotiin Woltista!\n📍 Tommilankatu 1, Turku\n📞 044 246 6447\n🕐 ${isWeekend?"La–Su 12:15–23:00":"Ma–Pe 15:00–23:30"}\n⭐ Wolt-arvosana 9.6/10\n\n${BASE_TAGS} ${dish.tags}`,
+              fb_kuva: `⭐ Montana Ristorante Turku\n\n${dish.name} — tilaa nyt Woltista tai käy paikan päällä!\n\n🗺️ Tommilankatu 1, Turku\n📞 044 246 6447\n\n${BASE_TAGS} ${dish.tags}`,
+            };
+            const key = platform+"_"+postType.toLowerCase().replace("🖼️ ","").replace("🎬 ","").replace("🎵 ","").replace("📝 ","").replace(" ","");
+            return texts[key] || texts.ig_kuva;
+          };
+
+          // Video scripts
+          const SCRIPTS = {
+            pizza: `"Katso tämä ${todayDish.name}... tuore taikina, paras juusto, suoraan uunista. Tilaa Woltista tai tule Tommilankatu 1 — Montana Ristorante Turku!"`,
+            kebab: `"Turun paras kebab on täällä! Tuore liha, tuoreet kasvikset. Tilaa Woltista tai tule maistamaan — Tommilankatu 1!"`,
+            burger: `"Montana Burger — katso kun puristan... täydellinen! Tilaa Woltista Turku!"`,
+            wings: `"Hot Wings jotka palavat sopivasti! Tilaa Woltista tai tule paikan päälle!"`,
+            pasta: `"Tuore pasta, kermainen kastike. Tilaa Woltista tai tule Tommilankatu 1!"`,
+          };
+
+          const [activeTab, setActiveTab] = React.useState("today");
 
           return (
           <div>
             <h1 style={{fontSize:22,fontWeight:900,marginBottom:4}}>📱 Markkinointikeskus</h1>
-            <div style={{color:"#555",fontSize:12,marginBottom:12}}>@townravintolatoy · @montanaristorante · Montana Ravintola</div>
+            <div style={{color:"#555",fontSize:12,marginBottom:14}}>@townravintolatoy · @montanaristorante · Montana Ravintola</div>
 
-            {/* OPENING HOURS */}
-            <div style={{background:"rgba(16,185,129,0.07)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:12,padding:14,marginBottom:14}}>
-              <div style={{fontWeight:800,fontSize:12,color:"#10b981",marginBottom:8}}>🕐 Aukioloajat</div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
-                {[["Ma","15:00–23:30"],["Ti","15:00–23:30"],["Ke","15:00–23:30"],["To","15:00–23:30"],["Pe","15:00–23:30"],["La","12:15–23:00"],["Su","12:15–23:00"]].map(([d,h])=>{
-                  const isT=d===dayNames[today.getDay()];
-                  return <div key={d} style={{textAlign:"center",padding:"6px 4px",borderRadius:8,background:isT?"rgba(16,185,129,0.2)":"rgba(255,255,255,0.02)",border:isT?"1px solid rgba(16,185,129,0.4)":"1px solid transparent"}}>
-                    <div style={{fontSize:11,fontWeight:800,color:isT?"#10b981":"#444"}}>{d}</div>
-                    <div style={{fontSize:9,color:isT?"#10b981":"#333",marginTop:2}}>{h.split("–")[0]}</div>
-                  </div>;
-                })}
-              </div>
+            {/* TABS */}
+            <div style={{display:"flex",gap:6,marginBottom:16,overflowX:"auto"}}>
+              {[["today","📅 Tänään"],["week","📆 Viikko"],["templates","🎨 Pohjat"],["tracking","📊 Seuranta"]].map(([id,label])=>(
+                <button key={id} onClick={()=>setActiveTab(id)} style={{padding:"8px 14px",borderRadius:10,border:"none",background:activeTab===id?"#e8a020":"rgba(255,255,255,0.06)",color:activeTab===id?"#000":"#666",cursor:"pointer",fontWeight:700,fontSize:12,whiteSpace:"nowrap"}}>
+                  {label}
+                </button>
+              ))}
             </div>
 
-            {/* TODAY HEADER */}
-            <div style={{background:"linear-gradient(135deg,rgba(232,160,32,0.15),rgba(249,115,22,0.08))",border:"2px solid rgba(232,160,32,0.4)",borderRadius:16,padding:18,marginBottom:14}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
-                <div>
-                  <div style={{fontWeight:900,fontSize:17,color:"#e8a020"}}>📅 {dayNames[today.getDay()]} {today.toLocaleDateString("fi-FI")}</div>
-                  <div style={{color:"#888",fontSize:12,marginTop:2}}>Julkaisuajat: <span style={{color:"#e8a020",fontWeight:700}}>{TIMES.join(" · ")}</span></div>
-                </div>
-                <button onClick={()=>{
-                  if("Notification" in window){
-                    Notification.requestPermission().then(p=>{
-                      if(p==="granted"){
-                        TIMES.forEach(t=>{
-                          const [h,m]=t.split(":").map(Number);
-                          const target=new Date();target.setHours(h,m-30,0,0);
-                          const diff=target-Date.now();
-                          if(diff>0) setTimeout(()=>new Notification("📱 Montana — Julkaisu kohta!",{body:`Kuvaa ${todayDish.name}! Julkaise klo ${t} 🍕`,icon:"/favicon.ico"}),diff);
-                        });
-                        notify("✅ Muistutukset asetettu!");
-                      }
-                    });
-                  }
-                }} style={{padding:"8px 14px",borderRadius:10,border:"1px solid rgba(232,160,32,0.4)",background:"rgba(232,160,32,0.15)",color:"#e8a020",cursor:"pointer",fontWeight:700,fontSize:11}}>
-                  🔔 Aseta muistutukset
-                </button>
+            {/* TAB: TODAY */}
+            {activeTab==="today"&&<div>
+              {/* Opening hours bar */}
+              <div style={{background:"rgba(16,185,129,0.07)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:12,padding:"10px 14px",marginBottom:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{fontSize:12,color:"#10b981",fontWeight:700}}>🕐 Tänään auki: {isWeekend?"12:15–23:00":"15:00–23:30"}</div>
+                <div style={{fontSize:11,color:"#555"}}>Julkaise: {TIMES.join(" · ")}</div>
               </div>
 
               {/* TODAY DISH */}
-              <div style={{background:"rgba(0,0,0,0.4)",borderRadius:12,padding:14,marginBottom:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+              <div style={{background:"linear-gradient(135deg,rgba(232,160,32,0.12),rgba(249,115,22,0.06))",border:"2px solid rgba(232,160,32,0.3)",borderRadius:16,padding:18,marginBottom:14}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
                   <div>
-                    <div style={{fontSize:11,color:"#555",fontWeight:700}}>📸 KUVAA TÄNÄÄN</div>
-                    <div style={{fontSize:20,fontWeight:900,color:"#fff",marginTop:4}}>{todayDish.name}</div>
+                    <div style={{fontWeight:900,fontSize:17,color:"#e8a020"}}>📅 {dayNames[today.getDay()]} {today.toLocaleDateString("fi-FI")}</div>
+                    <div style={{fontSize:20,fontWeight:900,color:"#fff",marginTop:6}}>{todayDish.name}</div>
                     <div style={{fontSize:12,color:"#e8a020",marginTop:3}}>💡 {todayDish.tip}</div>
                   </div>
+                  <button onClick={()=>{
+                    if("Notification" in window){
+                      Notification.requestPermission().then(p=>{
+                        if(p==="granted"){
+                          TIMES.forEach(t=>{
+                            const [h,m]=t.split(":").map(Number);
+                            const target=new Date();target.setHours(h,m-30,0,0);
+                            const diff=target-Date.now();
+                            if(diff>0) setTimeout(()=>new Notification("📱 Montana!",{body:`Julkaise nyt! Klo ${t} 🍕`}),diff);
+                          });
+                          notify("✅ Muistutukset asetettu!");
+                        }
+                      });
+                    }
+                  }} style={{padding:"8px 12px",borderRadius:10,border:"1px solid rgba(232,160,32,0.3)",background:"rgba(232,160,32,0.1)",color:"#e8a020",cursor:"pointer",fontWeight:700,fontSize:11}}>🔔 Muistutus</button>
                 </div>
-                <div style={{fontSize:11,color:"#444",fontWeight:700,marginBottom:5}}>🎬 VIDEO-SKRIPTI (15 sek)</div>
-                <div style={{fontSize:12,color:"#888",lineHeight:1.7,fontStyle:"italic",background:"rgba(255,255,255,0.03)",padding:"8px 12px",borderRadius:8}}>
-                  {SCRIPTS[todayDish.type]||SCRIPTS.pizza}
-                </div>
-              </div>
 
-              {/* TODAY HASHTAGS */}
-              <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:12,marginBottom:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                  <div style={{fontSize:11,color:"#555",fontWeight:700}}>#️⃣ TÄNÄÄN HASHTAGIT</div>
-                  <button onClick={()=>{navigator.clipboard.writeText(todayTags);notify("✅ Hashtagit kopioitu!");}} style={{padding:"3px 10px",borderRadius:6,border:"none",background:"rgba(232,160,32,0.2)",color:"#e8a020",cursor:"pointer",fontSize:10,fontWeight:700}}>📋 Kopioi</button>
+                {/* Video script */}
+                <div style={{background:"rgba(0,0,0,0.4)",borderRadius:10,padding:12,marginBottom:12}}>
+                  <div style={{fontSize:11,color:"#444",fontWeight:700,marginBottom:6}}>🎬 VIDEO-SKRIPTI (15 sek)</div>
+                  <div style={{fontSize:12,color:"#888",lineHeight:1.8,fontStyle:"italic"}}>{SCRIPTS[todayDish.type]||SCRIPTS.pizza}</div>
                 </div>
-                <div style={{fontSize:11,color:"#666",lineHeight:1.8}}>{todayTags}</div>
-              </div>
-            </div>
 
-            {/* DAILY PLAN PER PLATFORM */}
-            {DAILY_PLAN.map(platform=>(
-              <div key={platform.platform} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${platform.color}25`,borderRadius:16,padding:18,marginBottom:12}}>
-                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-                  <span style={{fontSize:22}}>{platform.icon}</span>
-                  <div style={{fontWeight:800,fontSize:15,color:platform.color}}>{platform.name}</div>
-                  <span style={{fontSize:11,color:"#444",marginLeft:"auto"}}>{platform.posts.length} julkaisua tänään</span>
+                {/* Today hashtags */}
+                <div style={{background:"rgba(0,0,0,0.3)",borderRadius:10,padding:12,marginBottom:12}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <div style={{fontSize:11,color:"#555",fontWeight:700}}>#️⃣ TÄNÄÄN HASHTAGIT</div>
+                    <button onClick={()=>{navigator.clipboard.writeText(todayTags);notify("✅ Hashtagit kopioitu!");}} style={{padding:"3px 10px",borderRadius:6,border:"none",background:"rgba(232,160,32,0.2)",color:"#e8a020",cursor:"pointer",fontSize:10,fontWeight:700}}>📋 Kopioi</button>
+                  </div>
+                  <div style={{fontSize:11,color:"#555",lineHeight:1.8}}>{todayTags}</div>
                 </div>
-                <div style={{display:"grid",gap:10}}>
-                  {platform.posts.map((post,i)=>(
-                    <div key={i} style={{background:"rgba(0,0,0,0.3)",borderRadius:12,padding:14,border:`1px solid ${platform.color}20`}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                          <span style={{fontSize:13,fontWeight:800,color:platform.color}}>{post.type}</span>
-                          <span style={{fontSize:11,background:`${platform.color}20`,color:platform.color,padding:"2px 8px",borderRadius:6,fontWeight:700}}>🕐 {post.time}</span>
-                        </div>
-                        <button onClick={()=>{navigator.clipboard.writeText(post.text);notify(`✅ ${platform.name} ${post.type} teksti kopioitu!`);}} style={{padding:"5px 12px",borderRadius:8,border:`1px solid ${platform.color}40`,background:`${platform.color}15`,color:platform.color,cursor:"pointer",fontSize:11,fontWeight:700}}>📋 Kopioi</button>
+
+                {/* Per platform posts */}
+                <div style={{display:"grid",gap:8}}>
+                  {[
+                    {id:"ig", icon:"📸", name:"Instagram", color:"#e1306c", posts:[
+                      {type:"🖼️ Kuva",    time:TIMES[0]},
+                      {type:"🎬 Reels",   time:TIMES[1]},
+                    ]},
+                    {id:"tt", icon:"🎵", name:"TikTok", color:"#69c9d0", posts:[
+                      {type:"🎵 Video",   time:TIMES[1]},
+                    ]},
+                    {id:"fb", icon:"👥", name:"Facebook", color:"#1877f2", posts:[
+                      {type:"📝 Julkaisu",time:TIMES[0]},
+                      {type:"🖼️ Kuva",   time:TIMES[2]},
+                    ]},
+                  ].map(platform=>(
+                    <div key={platform.id} style={{background:"rgba(0,0,0,0.3)",borderRadius:12,padding:14,border:`1px solid ${platform.color}20`}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                        <span style={{fontSize:16}}>{platform.icon}</span>
+                        <span style={{fontWeight:800,fontSize:13,color:platform.color}}>{platform.name}</span>
+                        <span style={{fontSize:10,color:"#333",marginLeft:"auto"}}>{platform.posts.length} julkaisua</span>
                       </div>
-                      <div style={{fontSize:11,color:"#555",lineHeight:1.8,whiteSpace:"pre-line"}}>{post.text}</div>
+                      <div style={{display:"grid",gap:6}}>
+                        {platform.posts.map((post,i)=>(
+                          <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:`${platform.color}08`,padding:"8px 10px",borderRadius:8}}>
+                            <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                              <span style={{fontSize:12,fontWeight:700,color:platform.color}}>{post.type}</span>
+                              <span style={{fontSize:10,color:"#444",background:"rgba(255,255,255,0.05)",padding:"2px 6px",borderRadius:5}}>🕐 {post.time}</span>
+                            </div>
+                            <div style={{display:"flex",gap:4}}>
+                              <button onClick={()=>{
+                                const text = genPost(todayDish, platform.id, post.type);
+                                navigator.clipboard.writeText(text);
+                                notify(`✅ ${platform.name} ${post.type} kopioitu!`);
+                              }} style={{padding:"4px 10px",borderRadius:7,border:`1px solid ${platform.color}30`,background:`${platform.color}15`,color:platform.color,cursor:"pointer",fontSize:10,fontWeight:700}}>📋</button>
+                              <button onClick={()=>{
+                                saveAdStat(platform.id,"post",1);
+                                notify(`✅ ${platform.name} julkaistu! +1 merkitty`);
+                              }} style={{padding:"4px 10px",borderRadius:7,border:"none",background:"rgba(16,185,129,0.2)",color:"#10b981",cursor:"pointer",fontSize:10,fontWeight:700}}>✅</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={()=>{
+                        setChatInput(`Luo ${platform.name}-julkaisuteksti ravintolalleni. Ruoka: ${todayDish.name}. Montana Ristorante, Tommilankatu 1 Turku, Wolt 9.6/10, auki ${isWeekend?"la-su 12:15-23:00":"ma-pe 15:00-23:30"}. Kirjoita VAIN suomeksi, max 200 merkkiä + hashtagit: ${todayTags}`);
+                        setScreen("assistant");
+                      }} style={{width:"100%",marginTop:8,padding:"8px",borderRadius:8,border:`1px solid ${platform.color}20`,background:`${platform.color}05`,color:platform.color,cursor:"pointer",fontSize:11,fontWeight:700}}>
+                        🤖 Luo AI-teksti {platform.name}iin →
+                      </button>
                     </div>
                   ))}
                 </div>
-                <button onClick={()=>{
-                  setChatInput(`Luo ${platform.name}-julkaisusuunnitelma tämän päivän ruoalle: ${todayDish.name}. Montana Ristorante, Tommilankatu 1 Turku, Wolt 9.6/10, aukioloajat ${isWeekend?"la-su 12:15-23:00":"ma-pe 15:00-23:30"}. Luo ${platform.posts.length} erilaista julkaisutekstiä ${platform.name}iin suomeksi, sisältäen hashtagit: ${todayTags}`);
-                  setScreen("assistant");
-                }} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:10,border:`1px solid ${platform.color}30`,background:`${platform.color}08`,color:platform.color,cursor:"pointer",fontSize:12,fontWeight:700}}>
-                  🤖 Luo AI-versio {platform.name}iin →
-                </button>
               </div>
-            ))}
+            </div>}
 
-            {/* WEEKLY OVERVIEW */}
-            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18,marginBottom:12}}>
+            {/* TAB: WEEK */}
+            {activeTab==="week"&&<div>
               <div style={{fontWeight:800,fontSize:14,marginBottom:12}}>📆 Viikon julkaisusuunnitelma</div>
-              <div style={{display:"grid",gap:5}}>
-                {Array.from({length:7},(_,i)=>{
-                  const d=new Date(today);d.setDate(today.getDate()-today.getDay()+1+i);
-                  const dish=DISHES[d.getDate()%DISHES.length];
-                  const isT=d.toDateString()===today.toDateString();
-                  const isPast=d<new Date(today.toDateString());
-                  const wend=d.getDay()===0||d.getDay()===6;
-                  return <div key={i} style={{display:"grid",gridTemplateColumns:"30px 1fr 120px 60px",gap:8,alignItems:"center",padding:"9px 12px",borderRadius:10,background:isT?"rgba(232,160,32,0.1)":"rgba(255,255,255,0.01)",border:isT?"1px solid rgba(232,160,32,0.3)":"1px solid rgba(255,255,255,0.03)",opacity:isPast?0.35:1}}>
-                    <div style={{fontSize:11,fontWeight:800,color:isT?"#e8a020":"#555"}}>{dayNames[d.getDay()]}</div>
-                    <div style={{fontSize:12,color:isT?"#fff":"#666"}}>{dish.name}</div>
-                    <div style={{display:"flex",gap:4}}>
-                      <span style={{fontSize:9,color:"#e1306c",fontWeight:600}}>📸IG</span>
-                      <span style={{fontSize:9,color:"#69c9d0",fontWeight:600}}>🎵TT</span>
-                      <span style={{fontSize:9,color:"#1877f2",fontWeight:600}}>👥FB</span>
-                    </div>
-                    <div style={{fontSize:10,color:"#444"}}>{wend?"12:15":"15:00"}</div>
-                  </div>;
-                })}
-              </div>
-            </div>
-
-            {/* HASHTAG BANK */}
-            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <div style={{fontWeight:800,fontSize:14}}>#️⃣ Hashtag-pankki</div>
-                <button onClick={()=>{navigator.clipboard.writeText(HASHTAGS.base+" "+Object.values(HASHTAGS).slice(1).join(" "));notify("✅ Kaikki hashtagit kopioitu!");}} style={{padding:"5px 12px",borderRadius:8,border:"none",background:"rgba(232,160,32,0.2)",color:"#e8a020",cursor:"pointer",fontSize:11,fontWeight:700}}>📋 Kopioi kaikki</button>
-              </div>
-              <div style={{display:"grid",gap:8}}>
-                {[["🌍 Yleiset",HASHTAGS.base],["🍕 Pizza",HASHTAGS.pizza],["🥙 Kebab",HASHTAGS.kebab],["🍔 Burger",HASHTAGS.burger],["🍗 Wings",HASHTAGS.wings],["🍝 Pasta",HASHTAGS.pasta]].map(([label,tags])=>(
-                  <div key={label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",background:"rgba(255,255,255,0.02)",borderRadius:8}}>
+              {weekPlan.map((d,i)=>(
+                <div key={i} style={{background:d.isT?"rgba(232,160,32,0.08)":"rgba(255,255,255,0.02)",border:`1px solid ${d.isT?"rgba(232,160,32,0.3)":"rgba(255,255,255,0.05)"}`,borderRadius:14,padding:14,marginBottom:8,opacity:d.isPast?0.4:1}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                     <div>
-                      <div style={{fontSize:11,fontWeight:700,color:"#666",marginBottom:3}}>{label}</div>
-                      <div style={{fontSize:10,color:"#444"}}>{tags}</div>
+                      <span style={{fontWeight:900,fontSize:14,color:d.isT?"#e8a020":"#666"}}>{d.day} {d.date.toLocaleDateString("fi-FI")}</span>
+                      {d.isT&&<span style={{fontSize:10,color:"#e8a020",marginLeft:8}}>← Tänään</span>}
                     </div>
-                    <button onClick={()=>{navigator.clipboard.writeText(tags);notify(`✅ ${label} kopioitu!`);}} style={{padding:"4px 10px",borderRadius:7,border:"1px solid rgba(232,160,32,0.3)",background:"rgba(232,160,32,0.1)",color:"#e8a020",cursor:"pointer",fontSize:10,fontWeight:700,whiteSpace:"nowrap",marginLeft:8}}>📋</button>
+                    <span style={{fontSize:11,color:"#444"}}>🕐 {d.time}</span>
+                  </div>
+                  <div style={{fontSize:13,fontWeight:700,color:"#fff",marginBottom:8}}>{d.dish.name}</div>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                    {d.platforms.map(p=>(
+                      <div key={p.id} style={{display:"flex",gap:4,alignItems:"center",padding:"4px 10px",borderRadius:8,background:`${p.color}12`,border:`1px solid ${p.color}25`}}>
+                        <span style={{fontSize:11}}>{p.icon}</span>
+                        {p.posts.map((post,j)=>(
+                          <span key={j} style={{fontSize:10,color:p.color,fontWeight:600}}>{post}</span>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                  {d.isT&&<button onClick={()=>{
+                    const allTexts = d.platforms.flatMap(p=>
+                      p.posts.map(post=>p.name+" "+post+":\n"+genPost(d.dish,p.id,post))
+                    ).join("\n\n---\n\n");
+                    navigator.clipboard.writeText(allTexts);
+                    notify("✅ Kaikki tänään tekstit kopioitu!");
+                  }} style={{width:"100%",marginTop:10,padding:"9px",borderRadius:9,border:"none",background:"rgba(232,160,32,0.2)",color:"#e8a020",cursor:"pointer",fontSize:12,fontWeight:700}}>
+                    📋 Kopioi kaikki tänään tekstit
+                  </button>}
+                </div>
+              ))}
+            </div>}
+
+            {/* TAB: TEMPLATES */}
+            {activeTab==="templates"&&<div>
+              <div style={{fontWeight:800,fontSize:14,marginBottom:12}}>🎨 Julkaisupohjat</div>
+
+              {/* Quick post ideas */}
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18,marginBottom:14}}>
+                <div style={{fontWeight:700,fontSize:13,marginBottom:12,color:"#e8a020"}}>💡 Sisältöideat per päivä</div>
+                {[
+                  {day:"Ma",idea:"Viikon aloitus — paras pizza tarjous",type:"📸 Kuva",platform:"Instagram+Facebook"},
+                  {day:"Ti",idea:"Behind the scenes — keittiö video",type:"🎬 Reels+Video",platform:"Instagram+TikTok"},
+                  {day:"Ke",idea:"Wolt-muistutus — nopea toimitus",type:"📝 Julkaisu",platform:"Facebook"},
+                  {day:"To",idea:"Suosittu annos lähikuvana",type:"🖼️ Kuva",platform:"Instagram"},
+                  {day:"Pe",idea:"Viikonloppu alkaa — kebab/burger",type:"🎬 Reels",platform:"Instagram+TikTok"},
+                  {day:"La",idea:"Lounas 12:15 — erikoistarjous",type:"📝+Kuva",platform:"Kaikki"},
+                  {day:"Su",idea:"Perhepizza sunnuntai — nostalgia",type:"📸 Kuva",platform:"Facebook+Instagram"},
+                ].map((r,i)=>(
+                  <div key={i} style={{display:"grid",gridTemplateColumns:"28px 1fr 100px",gap:8,alignItems:"center",padding:"8px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                    <span style={{fontWeight:800,fontSize:12,color:"#e8a020"}}>{r.day}</span>
+                    <div>
+                      <div style={{fontSize:12,color:"#ccc"}}>{r.idea}</div>
+                      <div style={{fontSize:10,color:"#444",marginTop:2}}>{r.platform}</div>
+                    </div>
+                    <span style={{fontSize:10,color:"#666",textAlign:"right"}}>{r.type}</span>
                   </div>
                 ))}
               </div>
-            </div>
+
+              {/* Ready templates */}
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18,marginBottom:14}}>
+                <div style={{fontWeight:700,fontSize:13,marginBottom:12,color:"#e8a020"}}>⚡ Valmiit tekstipohjat</div>
+                {[
+                  {label:"🍕 Pizza-päivä",plat:"📸 IG+FB",text:`🍕 Tuoretta pizzaa suoraan uunista!\n\nTilaa Woltista → nopeasti kotiin 🛵\n⭐ Wolt-arvosana 9.6/10\nTommilankatu 1, Turku\n\n${BASE_TAGS} #pizza #pizzalover`},
+                  {label:"🥙 Kebab-ilta",plat:"🎵 TikTok",text:`🥙 Turun paras kebab — tule maistamaan!\n\nAuki tänään · Tilaa myös Woltista 🛵\nTommilankatu 1, Turku\n\n${BASE_TAGS} #kebab #kebabturku`},
+                  {label:"⭐ Wolt 9.6/10",plat:"📸 IG",text:`⭐ 9.6/10 Woltissa — kiitos teille Turku! 🙏\n\nOlemme ylpeitä palvelustamme.\nTilaa tänään → Wolt 🛵\n\n${BASE_TAGS}`},
+                  {label:"🍔 Burger",plat:"👥 FB",text:`🍔 Montana Burger — mahtava maku!\n\nLisukkeena maalaisranskalaiset 🥤\nTommilankatu 1, Turku · Tilaa Woltista 🛵\n\n${BASE_TAGS} #burger #burgerturku`},
+                  {label:"📍 Ravintola",plat:"📸 IG",text:`📍 Löydät meidät Turusta!\n\n🍕 Pizza · 🥙 Kebab · 🍔 Burger · 🍝 Pasta\nAuki ${isWeekend?"La–Su 12:15–23:00":"Ma–Pe 15:00–23:30"}\nTilaa myös Woltista!\n⭐ Wolt 9.6/10\n\n${BASE_TAGS}`},
+                  {label:"🎉 Viikonloppu",plat:"Kaikki",text:`🎉 Viikonloppu on täällä!\n\nTule nauttimaan tai tilaa kotiin Woltista 🛵\n📍 Tommilankatu 1, Turku\n🕐 La–Su 12:15–23:00\n⭐ Wolt 9.6/10\n\n${BASE_TAGS} #viikonloppu #turkueats`},
+                ].map((t,i)=>(
+                  <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:700}}>{t.label}</div>
+                      <div style={{fontSize:10,color:"#444",marginTop:2}}>{t.plat}</div>
+                    </div>
+                    <button onClick={()=>{navigator.clipboard.writeText(t.text);notify("✅ Kopioitu!");}} style={{padding:"6px 14px",borderRadius:8,border:"1px solid rgba(232,160,32,0.3)",background:"rgba(232,160,32,0.1)",color:"#e8a020",cursor:"pointer",fontSize:11,fontWeight:700}}>📋</button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Hashtag bank */}
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                  <div style={{fontWeight:700,fontSize:13}}>#️⃣ Hashtag-pankki</div>
+                  <button onClick={()=>{navigator.clipboard.writeText(BASE_TAGS);notify("✅ Kopioitu!");}} style={{padding:"4px 12px",borderRadius:7,border:"none",background:"rgba(232,160,32,0.15)",color:"#e8a020",cursor:"pointer",fontSize:11,fontWeight:700}}>📋 Kaikki</button>
+                </div>
+                {[
+                  ["🌍 Yleiset",BASE_TAGS],
+                  ["🍕 Pizza","#pizza #pizzaturku #italianofood #pizzalover #pizzatime #pizzanight"],
+                  ["🥙 Kebab","#kebab #kebabturku #kebablover #streetfood #grilliruoka #doner"],
+                  ["🍔 Burger","#burger #burgerlover #hamburger #burgerturku #burgertime"],
+                  ["🔥 Wings","#hotwings #chickenwings #wings #spicyfood #kanaruoka"],
+                  ["🍝 Pasta","#pasta #pastaturku #italianfood #pastatime"],
+                ].map(([label,tags])=>(
+                  <div key={label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
+                    <div>
+                      <div style={{fontSize:11,fontWeight:700,color:"#555"}}>{label}</div>
+                      <div style={{fontSize:10,color:"#333",marginTop:2}}>{tags}</div>
+                    </div>
+                    <button onClick={()=>{navigator.clipboard.writeText(tags);notify("✅ Kopioitu!");}} style={{padding:"3px 10px",borderRadius:6,border:"1px solid rgba(232,160,32,0.2)",background:"rgba(232,160,32,0.08)",color:"#e8a020",cursor:"pointer",fontSize:10,fontWeight:700,marginLeft:8}}>📋</button>
+                  </div>
+                ))}
+              </div>
+            </div>}
+
+            {/* TAB: TRACKING */}
+            {activeTab==="tracking"&&<div>
+              <div style={{fontWeight:800,fontSize:14,marginBottom:12}}>📊 Julkaisuseuranta</div>
+
+              {/* Stats cards */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
+                {[
+                  {name:"Instagram",icon:"📸",color:"#e1306c",id:"ig"},
+                  {name:"TikTok",   icon:"🎵",color:"#69c9d0",id:"tt"},
+                  {name:"Facebook", icon:"👥",color:"#1877f2",id:"fb"},
+                ].map(p=>(
+                  <div key={p.id} style={{background:`${p.color}10`,border:`1px solid ${p.color}25`,borderRadius:14,padding:14,textAlign:"center"}}>
+                    <div style={{fontSize:20,marginBottom:4}}>{p.icon}</div>
+                    <div style={{fontSize:11,color:p.color,fontWeight:700,marginBottom:6}}>{p.name}</div>
+                    <div style={{fontSize:20,fontWeight:900,color:"#fff"}}>{weekStats[p.id].posts}</div>
+                    <div style={{fontSize:10,color:"#444"}}>julkaisua</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Log post manually */}
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:18,marginBottom:14}}>
+                <div style={{fontWeight:700,fontSize:13,marginBottom:12}}>➕ Merkitse julkaisu tehdyksi</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                  {[
+                    {name:"Instagram",icon:"📸",color:"#e1306c",id:"ig"},
+                    {name:"TikTok",   icon:"🎵",color:"#69c9d0",id:"tt"},
+                    {name:"Facebook", icon:"👥",color:"#1877f2",id:"fb"},
+                  ].map(p=>(
+                    <button key={p.id} onClick={()=>{saveAdStat(p.id,"post",1);notify(`✅ ${p.name} julkaisu merkitty!`);}} style={{padding:"12px 8px",borderRadius:12,border:`1px solid ${p.color}30`,background:`${p.color}10`,color:p.color,cursor:"pointer",fontWeight:700,fontSize:12,textAlign:"center"}}>
+                      {p.icon}<br/><span style={{fontSize:10}}>{p.name}</span><br/><span style={{fontSize:9,opacity:0.7}}>+1 julkaisu</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tips */}
+              <div style={{background:"rgba(0,157,224,0.07)",border:"1px solid rgba(0,157,224,0.2)",borderRadius:16,padding:18}}>
+                <div style={{fontWeight:700,fontSize:13,color:"#009de0",marginBottom:10}}>💡 Algoritmi-vinkit</div>
+                {[
+                  "📸 Instagram: julkaise Reels joka päivä klo 17-19 → paras näkyvyys",
+                  "🎵 TikTok: 3-5 videoa viikossa → algoritmi suosii aktiivisuutta",
+                  "👥 Facebook: julkaise klo 12-14 ja 18-20 → eniten käyttäjiä",
+                  "⭐ Käytä aina Wolt-arvosana 9.6/10 tekstissä → lisää luottamusta",
+                  "🏷️ Max 20-30 hashtagia Instagramissa → enemmän ei ole parempi",
+                  "🎬 Reels saa 3x enemmän näkyvyyttä kuin tavallinen kuva",
+                ].map((tip,i)=>(
+                  <div key={i} style={{fontSize:12,color:"#666",padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.03)"}}>{tip}</div>
+                ))}
+              </div>
+            </div>}
+
           </div>
           );
         })()}
