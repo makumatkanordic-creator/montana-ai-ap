@@ -448,6 +448,7 @@ export default function MontanaAI() {
   const [orderNum, setOrderNum] = useState(1001);
   const [payMethod, setPayMethod] = useState("card");
   const [discount, setDiscount] = useState(0);
+  const [activeMarketingTab, setActiveMarketingTab] = useState("today");
   const [fantasiaItem, setFantasiaItem] = useState(null);
   const [kebabChoiceItem, setKebabChoiceItem] = useState(null);
   const [kebabType, setKebabType] = useState("kebabliha");
@@ -1294,7 +1295,7 @@ Anna vastaus suomeksi, käytännölliset neuvot.`);
             pasta: `"Tuore pasta, kermainen kastike. Tilaa Woltista tai tule Tommilankatu 1!"`,
           };
 
-          const [activeTab, setActiveTab] = React.useState("today");
+          const activeTab = activeMarketingTab; const setActiveTab = setActiveMarketingTab;
 
           return (
           <div>
